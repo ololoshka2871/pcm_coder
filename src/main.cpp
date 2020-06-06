@@ -5,6 +5,9 @@
 #include "print_duration.h"
 
 #include "audioreader.h"
+#include "samplegenerator.h"
+
+#include "Player.h"
 
 #include "CLI/CLI.hpp"
 
@@ -132,14 +135,24 @@ int main(int argc, char *argv[]) {
 
   audioReader.dumpFileInfo(std::cout);
 
-  const AudioReader::AudioSample *audio_data;
-  int frames_read;
+  const AudioSample<float> *audio_data;
+  uint32_t frames_read;
   std::chrono::nanoseconds timestamp;
+
+  void *player_ctx;
+  int err;
+  SampleGenerator gen;
+
+  initPlayerContext(0, AudioReader::output_sample_rate, 10, &player_ctx, &err);
 
   while (audioReader.getNextAudioData(audio_data, frames_read, timestamp)) {
     std::cout << "Input: Decodec " << frames_read
               << " frames, TIMESATMP: " << timestamp << std::endl;
+    auto res = gen.convert(audio_data, frames_read);
+    Play(&player_ctx, res.data()->all, frames_read);
   }
+
+  releasePlayerContext(&player_ctx);
 
   return 0;
 }

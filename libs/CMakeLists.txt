@@ -1,4 +1,7 @@
 
+find_package(FFmpeg REQUIRED)
+find_package(Portaudio REQUIRED)
+
 ##############
 # CLI11
 ##############
@@ -13,8 +16,6 @@ target_include_directories(CLI11 INTERFACE ${CLI11_DIR})
 # FFmpegVideoReader
 ##############
 
-find_package(FFmpeg REQUIRED)
-
 set(FFmpegVideoReader_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pcm_utils/FFmpegVideoReader)
 
 set(FFmpegVideoReader_SRC
@@ -27,11 +28,33 @@ add_library(FFmpegVideoReader ${FFmpegVideoReader_SRC})
 
 target_include_directories(FFmpegVideoReader
     PUBLIC
-        ${FFMPEG_INCLUDE_DIRS}
         ${FFmpegVideoReader_DIR}
 )
 
 target_link_libraries(FFmpegVideoReader
     PUBLIC
         ${FFMPEG_LIBRARIES}
+)
+
+##############
+# PlayerWriter
+##############
+
+set(PlayerWriter_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pcm_utils/PlayerWriter)
+
+set(PlayerWriter_SRC
+    ${PlayerWriter_DIR}/player.cpp
+)
+
+add_library(PlayerWriter ${PlayerWriter_SRC})
+
+target_include_directories(PlayerWriter
+    PUBLIC
+        ${PlayerWriter_DIR}
+)
+
+target_link_libraries(PlayerWriter
+    PUBLIC
+        ${FFMPEG_LIBRARIES}
+        ${PORTAUDIO_LIBRARIES}
 )

@@ -7,16 +7,13 @@
 #include <string>
 #include <vector>
 
+#include "audiosample.h"
+
 struct AudioReader {
 
   static constexpr auto output_sample_rate = 44100;
 
-  union AudioSample {
-    struct {
-      float L, R;
-    };
-    float all[2];
-  };
+  using AudioSample = AudioSample<float>;
 
   AudioReader(const std::string &filename);
   ~AudioReader();
@@ -25,7 +22,7 @@ struct AudioReader {
 
   std::chrono::nanoseconds duration() const;
 
-  bool getNextAudioData(const AudioSample *&pData, int &nb_samples,
+  bool getNextAudioData(const AudioSample *&pData, uint32_t &nb_samples,
                         std::chrono::nanoseconds &timestamp);
 
 private:

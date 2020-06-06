@@ -153,7 +153,8 @@ std::chrono::nanoseconds AudioReader::duration() const {
   return std::chrono::duration_cast<std::chrono::nanoseconds>(d);
 }
 
-bool AudioReader::getNextAudioData(const AudioSample *&pData, int &nb_samples,
+bool AudioReader::getNextAudioData(const AudioSample *&pData,
+                                   uint32_t &nb_samples,
                                    std::chrono::nanoseconds &timestamp) {
   while (1) {
     auto res = avcodec_receive_frame(ctx->pCodecContext, ctx->pFrame);
