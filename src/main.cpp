@@ -1,4 +1,5 @@
 
+#include <csignal>
 #include <iostream>
 #include <string>
 
@@ -52,7 +53,7 @@ struct Options {
     return app
         .add_flag(flag_name, value,
                   description + generate_default_str(default_val, value))
-        ->expected(1);
+        ->expected(0);
   }
 
   static const char uncompressed[];
@@ -95,7 +96,21 @@ struct Options {
 
 const char Options::uncompressed[] = "Uncompressed";
 
+static bool terminate_flag = false;
+
+static void configure_ctrlc_listener() {
+  struct sigaction sigIntHandler;
+
+  sigIntHandler.sa_handler = [](int) { terminate_flag = true; };
+  sigemptyset(&sigIntHandler.sa_mask);
+  sigIntHandler.sa_flags = 0;
+
+  sigaction(SIGINT, &sigIntHandler, nullptr);
+}
+
 int main(int argc, char *argv[]) {
+
+  configure_ctrlc_listener();
 
   CLI::App app{"PCM encoder"};
 
@@ -139,20 +154,31 @@ int main(int argc, char *argv[]) {
   uint32_t frames_read;
   std::chrono::nanoseconds timestamp;
 
-  void *player_ctx;
-  int err;
-  SampleGenerator gen;
+  SampleGenerator gen{options.width14, options.use_dither};
 
-  initPlayerContext(0, AudioReader::output_sample_rate, 10, &player_ctx, &err);
-
-  while (audioReader.getNextAudioData(audio_data, frames_read, timestamp)) {
-    std::cout << "Input: Decodec " << frames_read
-              << " frames, TIMESATMP: " << timestamp << std::endl;
-    auto res = gen.convert(audio_data, frames_read);
-    Play(&player_ctx, res.data()->all, frames_read);
+  auto res = Pa_Initialize();
+  if (res != paNoError) {
+    std::cout << "Can't init PA (" << res << ")" << std::endl;
+    return 1;
   }
 
-  releasePlayerContext(&player_ctx);
+  {
+    Player player{0, 10, AudioReader::output_sample_rate};
+
+    while (audioReader.getNextAudioData(audio_data, frames_read, timestamp)) {
+      std::cout << "Input: Decodec " << frames_read
+                << " frames, TIMESATMP: " << timestamp << std::endl;
+      auto res = gen.convert(audio_data, frames_read);
+      player.play(res.data()->all, frames_read * 2, 0.5);
+
+      if (terminate_flag) {
+        std::cout << "Keyboard interrupt!" << std::endl;
+        break;
+      }
+    }
+  }
+
+  Pa_Terminate();
 
   return 0;
 }

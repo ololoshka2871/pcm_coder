@@ -1,6 +1,7 @@
 #ifndef SAMPLEGENERATOR_H
 #define SAMPLEGENERATOR_H
 
+#include <random>
 #include <vector>
 
 #include "audioreader.h"
@@ -17,8 +18,13 @@ struct SampleGenerator {
   o_samples_format convert(const i_samples_format &in);
 
 private:
-  bool is_16_bit;
+  std::default_random_engine generator;
+  std::normal_distribution<float> distribution;
+
+  bool is_14_bit;
   bool use_dither;
+
+  int16_t random_ps1();
 };
 
 #endif // SAMPLEGENERATOR_H
