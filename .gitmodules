@@ -1,3 +1,6 @@
 [submodule "libs/CLI11"]
 	path = libs/CLI11
 	url = https://github.com/CLIUtils/CLI11.git
+[submodule "libs/pcm_utils"]
+	path = libs/pcm_utils
+	url = https://github.com/ololoshka2871/pcm_utils.git

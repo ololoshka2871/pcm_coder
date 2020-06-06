@@ -2,6 +2,10 @@
 #include <iostream>
 #include <string>
 
+#include "print_duration.h"
+
+#include "audioreader.h"
+
 #include "CLI/CLI.hpp"
 
 struct Options {
@@ -65,23 +69,23 @@ struct Options {
   std::string bitWidthsStr() const { return width14 ? "14 bit" : "16 bit"; }
   static std::string printBool(bool v) { return v ? "YES" : "NO"; }
 
-  void dump() const {
+  void dump(std::ostream &os) const {
     using namespace std;
 
-    cout << "Coder options:" << endl
-         << "\tInutput file: " << InputFile << endl
-         << "\tOutput File: " << OutputFile << endl
-         << "\tCodec: " << codec << endl
-         << "\tFormat: " << formatsStr() << endl
-         << "\tBit width: " << bitWidthsStr() << endl
-         << "\tUse diter: " << printBool(width14 ? use_dither : false) << endl
-         << "\tGenerate parity: " << printBool(parity) << endl;
+    os << "Coder options:" << endl
+       << "\tInutput file: " << InputFile << endl
+       << "\tOutput File: " << OutputFile << endl
+       << "\tCodec: " << codec << endl
+       << "\tFormat: " << formatsStr() << endl
+       << "\tBit width: " << bitWidthsStr() << endl
+       << "\tUse diter: " << printBool(width14 ? use_dither : false) << endl
+       << "\tGenerate parity: " << printBool(parity) << endl;
     if (width14) {
-      cout << "\tGenerate Q: " << printBool(Q) << endl;
+      os << "\tGenerate Q: " << printBool(Q) << endl;
     }
-    cout << "\tCut video: " << printBool(Cut) << endl;
+    os << "\tCut video: " << printBool(Cut) << endl;
     if (codec != uncompressed) {
-      cout << "\tVideo bitrate: " << bitrate << endl;
+      os << "\tVideo bitrate: " << bitrate << endl;
     }
   }
 };
@@ -120,7 +124,22 @@ int main(int argc, char *argv[]) {
 
   CLI11_PARSE(app, argc, argv);
 
-  options.dump();
+  options.dump(std::cout);
+
+  std::cout << std::endl;
+
+  AudioReader audioReader{options.InputFile};
+
+  audioReader.dumpFileInfo(std::cout);
+
+  const AudioReader::AudioSample *audio_data;
+  int frames_read;
+  std::chrono::nanoseconds timestamp;
+
+  while (audioReader.getNextAudioData(audio_data, frames_read, timestamp)) {
+    std::cout << "Input: Decodec " << frames_read
+              << " frames, TIMESATMP: " << timestamp << std::endl;
+  }
 
   return 0;
 }

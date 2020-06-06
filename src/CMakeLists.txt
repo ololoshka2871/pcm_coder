@@ -1,6 +1,11 @@
 
 set(SRC
     main.cpp
+
+    audioreader.h
+    audioreader.cpp
+    print_duration.h
+    print_duration.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC})
@@ -8,7 +13,8 @@ add_executable(${PROJECT_NAME} ${SRC})
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
         CLI11
+        FFmpegVideoReader
         stdc++
 )
 
-set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD ${CPP_STD})

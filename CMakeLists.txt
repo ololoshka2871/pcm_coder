@@ -4,7 +4,7 @@ set(CPP_STD 17)
 
 project(pcm_coder LANGUAGES CXX)
 
-# set(CMAKE_CXX_LINK_EXECUTABLE ${CMAKE_CXX_COMPILER})
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 add_subdirectory(libs)
 add_subdirectory(src)
