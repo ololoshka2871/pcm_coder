@@ -16,7 +16,9 @@ struct PCMLine {
     Q_offset = P_offset + 1,
   };
 
-  PCMLine() : data(TotalDataPreLine) {}
+  PCMLine() : data(TotalDataPreLine), isEof{false} {}
+
+  static PCMLine eof();
 
   std::vector<uint16_t>::iterator iterator() { return data.begin(); }
 
@@ -24,8 +26,13 @@ struct PCMLine {
   uint16_t generateQ() const;
   std::pair<uint16_t, uint16_t> generatePQ();
 
+  const std::vector<uint16_t> &getData() const { return data; }
+
+  bool isEOF() const { return isEof; }
+
 private:
   std::vector<uint16_t> data;
+  bool isEof;
 };
 
 #endif // PCMLINE_H

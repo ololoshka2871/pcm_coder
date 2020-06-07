@@ -1,10 +1,17 @@
 #ifndef PCMFRMAGEMANAGER_H
 #define PCMFRMAGEMANAGER_H
 
+#include <memory>
+
 #include "pcmframe.h"
 #include "pcmline.h"
+#include "samplestairsitherator.h"
 
 #include "LockingQueue.h"
+
+namespace std {
+class thread;
+}
 
 struct PCMFrmageManager {
   // хранит 2 PCMFrame
@@ -12,16 +19,39 @@ struct PCMFrmageManager {
   // записывает данные в PCMFrame
   // когда кадр полностью построен кладет его в очередь на энкодинг
 
-  PCMFrmageManager(LockingQueue<PCMFrame> &ouqQeue) : inpitQueue{1} {}
+  static constexpr size_t PAL_HEIGTH = 625;
+  static constexpr size_t NTSC_HEIGTH = 525;
+
+  PCMFrmageManager(bool isPal,
+                   LockingQueue<std::unique_ptr<PCMFrame>> &outQeue);
+  ~PCMFrmageManager();
 
   PCMFrmageManager &start();
-  PCMFrmageManager &finalise();
   void join();
 
-  LockingQueue<PCMLine> &getInputQueue() { return inpitQueue; }
+  LockingQueue<PCMLine> &getInputQueue() { return inputQueue; }
+
+  static size_t getHeigth(bool isPal);
 
 private:
-  LockingQueue<PCMLine> inpitQueue;
+  size_t heigth;
+  LockingQueue<PCMLine> inputQueue;
+  LockingQueue<std::unique_ptr<PCMFrame>> &outQeue;
+
+  std::unique_ptr<std::thread> pThread;
+
+  std::unique_ptr<PCMFrame> currentFrame;
+  std::unique_ptr<PCMFrame> nextFrame;
+
+  SampleStairsItherator mainItherator;
+
+  void thread_func();
+
+  void swapBuffers() { std::swap(currentFrame, nextFrame); }
+
+  void process_redy_frame();
+
+  void generateCRC(std::unique_ptr<PCMFrame> &frame);
 };
 
 #endif // PCMFRMAGEMANAGER_H

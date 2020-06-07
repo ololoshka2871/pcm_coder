@@ -8,9 +8,13 @@
 #include "audioreader.h"
 #include "samplegenerator.h"
 
-#include "pcmencoder.h"
 #include "pcmfrmagemanager.h"
 #include "pcmlinegenerator.h"
+
+#include "ffmpegvideocoder.h"
+#ifdef SDL2
+#include "sdl2display.h"
+#endif
 
 #include "Player.h"
 
@@ -120,8 +124,7 @@ static Options configureArgumentParcer(CLI::App &app) {
                    "Generate parity.");
   Options::newFlag(app, "--with-q,!--no-q,!--NQ", options.Q, "Generate Q.");
   Options::newFlag(app, "-C,--Cut", options.Cut, "Cut-out invisavle strings.");
-  Options::newFlag(app, "--play-sound", options.Play,
-                   "Play sound while converting");
+  Options::newFlag(app, "--play", options.Play, "Play sound while converting");
   Options::newOption(app, "-b,--video-bitrate", options.bitrate,
                      "Set video bitrate (if not Uncompressed).")
       ->needs(codec_opt);
@@ -146,18 +149,32 @@ static void configure_ctrlc_listener() {
   sigaction(SIGINT, &sigIntHandler, nullptr);
 }
 
-static auto createEncoderThread(const Options &options) {
-  auto encoder = std::make_unique<PCMEncoder>(options.OutputFile, options.codec,
-                                              options.bitrate, options.Cut);
+static auto createConsumerThread(const Options &options) {
+  static constexpr auto Width = 139; // fixme
 
-  encoder->start();
+  std::unique_ptr<AbastractPCMFinalStage> consumer;
+#ifdef SDL2
+  if (options.Play) {
+    consumer = std::make_unique<SDL2Display>(
+        Width, PCMFrmageManager::getHeigth(options.pal),
+        []() { terminate_flag = true; });
+  } else
+#endif
+  {
+    consumer = std::make_unique<FFmpegVideoCoder>(
+        Width, PCMFrmageManager::getHeigth(options.pal), options.OutputFile,
+        options.codec, options.bitrate, options.Cut);
+  }
 
-  return encoder;
+  consumer->start();
+
+  return consumer;
 }
 
-static auto createLineManager(const Options &options,
-                              LockingQueue<PCMFrame> &outQueue) {
-  auto manager = std::make_unique<PCMFrmageManager>(outQueue);
+static auto
+createLineManager(const Options &options,
+                  LockingQueue<std::unique_ptr<PCMFrame>> &outQueue) {
+  auto manager = std::make_unique<PCMFrmageManager>(options.pal, outQueue);
 
   manager->start();
 
@@ -186,8 +203,8 @@ int main(int argc, char *argv[]) {
 
   SampleGenerator gen{options.width14, options.use_dither};
 
-  auto encoder = createEncoderThread(options);
-  auto manager = createLineManager(options, encoder->getQueue());
+  auto consmer = createConsumerThread(options);
+  auto manager = createLineManager(options, consmer->getQueue());
   PCMLineGenerator lineGenerator{manager->getInputQueue()};
 
   auto res = Pa_Initialize();
@@ -221,9 +238,6 @@ int main(int argc, char *argv[]) {
   }
 
   lineGenerator.flush();
-
-  manager->finalise().join();
-  encoder->finalise().join();
 
   Pa_Terminate();
 

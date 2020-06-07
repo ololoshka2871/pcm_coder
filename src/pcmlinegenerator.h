@@ -24,8 +24,8 @@ private:
 
   template <typename T>
   void write_sampe(T &it, const SampleGenerator::o_samples_format &sample) {
-    *it++ = sample.L;
-    *it++ = sample.R;
+    *it++ = 0x0A; // sample.L;
+    *it++ = 0xA0; // sample.R;
   }
 
   template <typename T> void write_overflow(T &it) {

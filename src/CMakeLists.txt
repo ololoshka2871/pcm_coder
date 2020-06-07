@@ -1,4 +1,6 @@
 
+find_package(SDL2)
+
 set(SRC
     main.cpp
 
@@ -23,11 +25,22 @@ set(SRC
     pcmfrmagemanager.cpp
     samplestairsitherator.h
     samplestairsitherator.cpp
-    pcmencoder.h
-    pcmencoder.cpp
+    AbastractPCMFinalStage.h
+    AbastractPCMFinalStage.cpp
+
+    ffmpegvideocoder.h
+    ffmpegvideocoder.cpp
 )
 
+if (SDL2_FOUND)
+list(APPEND SRC
+    sdl2display.h
+    sdl2display.cpp
+)
+endif()
+
 add_executable(${PROJECT_NAME} ${SRC})
+
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
@@ -38,4 +51,25 @@ target_link_libraries(${PROJECT_NAME}
         stdc++
 )
 
+if (SDL2_FOUND)
+    target_link_libraries(${PROJECT_NAME}
+        PUBLIC
+            CLI11
+            FFmpegVideoReader
+            PlayerWriter
+            pcm_utils
+            SDL2::SDL2main SDL2::SDL2
+            stdc++
+    )
+    target_compile_definitions(${PROJECT_NAME}
+        PUBLIC
+            -DSDL2
+    )
+else()
+    message(STATUS "SDL2 not found display pcm not supported!")
+endif()
+
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD ${CPP_STD})
+
+
+

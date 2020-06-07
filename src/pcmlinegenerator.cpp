@@ -33,10 +33,4 @@ void PCMLineGenerator::input(
   }
 }
 
-void PCMLineGenerator::flush() {
-  auto overflow_size = overflow.size();
-  if (overflow_size) {
-    input(std::vector<SampleGenerator::o_samples_format>{
-        PCMLine::TotalDataLRSamples - overflow_size});
-  }
-}
+void PCMLineGenerator::flush() { sendLine(PCMLine::eof()); }
