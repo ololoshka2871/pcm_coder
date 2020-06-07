@@ -58,3 +58,13 @@ target_link_libraries(PlayerWriter
         ${FFMPEG_LIBRARIES}
         ${PORTAUDIO_LIBRARIES}
 )
+
+##############
+# pcm_utils
+##############
+
+set(pcm_utils_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pcm_utils/pcm_utils)
+
+add_library(pcm_utils INTERFACE)
+
+target_include_directories(pcm_utils INTERFACE ${pcm_utils_DIR})
