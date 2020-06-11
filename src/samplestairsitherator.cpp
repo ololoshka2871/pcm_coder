@@ -17,7 +17,7 @@ SampleStairsItherator SampleStairsItherator::wrap(PCMFrame &newframe) {
 }
 
 uint16_t &SampleStairsItherator::operator*() {
-  return frame->data[row * PCMFrame::TOTAL_LINE_ELEMENTS + column];
+  return (*frame->getLine(row))[column];
 }
 
 SampleStairsItherator &SampleStairsItherator::operator++() {

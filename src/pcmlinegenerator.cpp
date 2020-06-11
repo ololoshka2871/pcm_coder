@@ -28,8 +28,9 @@ void PCMLineGenerator::input(
       sendLine(line);
 
       itl = line_start;
+    } else {
+      write_sample(itl, *it);
     }
-    write_sampe(itl, *it);
   }
 }
 

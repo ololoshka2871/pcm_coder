@@ -8,6 +8,4 @@ FFmpegVideoCoder::FFmpegVideoCoder(size_t width, size_t heigth,
 
 FFmpegVideoCoder::~FFmpegVideoCoder() {}
 
-void FFmpegVideoCoder::processPCMFrame(const std::unique_ptr<PCMFrame> &frame) {
-
-}
+void FFmpegVideoCoder::processPCMFrame(std::unique_ptr<PCMFrame> &frame) {}

@@ -23,14 +23,14 @@ private:
   void sendLine(const PCMLine &line) { outputQueue.push(line); }
 
   template <typename T>
-  void write_sampe(T &it, const SampleGenerator::o_samples_format &sample) {
-    *it++ = 0x0A; // sample.L;
-    *it++ = 0xA0; // sample.R;
+  void write_sample(T &it, const SampleGenerator::o_samples_format &sample) {
+    *it++ = sample.L;
+    *it++ = sample.R;
   }
 
   template <typename T> void write_overflow(T &it) {
     for (auto &v : overflow) {
-      write_sampe(it, v);
+      write_sample(it, v);
     }
   }
 };

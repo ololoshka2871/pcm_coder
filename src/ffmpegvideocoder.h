@@ -11,7 +11,7 @@ struct FFmpegVideoCoder : public AbastractPCMFinalStage {
   ~FFmpegVideoCoder() override;
 
 protected:
-  void processPCMFrame(const std::unique_ptr<PCMFrame> &frame) override;
+  void processPCMFrame(std::unique_ptr<PCMFrame> &frame) override;
 };
 
 #endif // FFMPEGVIDEOCODER_H

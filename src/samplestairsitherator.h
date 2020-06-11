@@ -31,6 +31,7 @@ private:
 
   PCMFrame *frame;
 
+public:
   ssize_t row;
   size_t column;
 };

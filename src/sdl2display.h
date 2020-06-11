@@ -10,8 +10,6 @@ namespace std {
 class thread;
 }
 
-struct SDL_Window;
-
 struct SDL2Display : public AbastractPCMFinalStage {
   SDL2Display(size_t width, size_t heigth,
               const std::function<void()> &onClose);
@@ -19,14 +17,15 @@ struct SDL2Display : public AbastractPCMFinalStage {
   ~SDL2Display() override;
 
 protected:
-  void processPCMFrame(const std::unique_ptr<PCMFrame> &frame) override;
+  void processPCMFrame(std::unique_ptr<PCMFrame> &frame) override;
 
 private:
-  SDL_Window *window;
+  struct Context;
 
-  std::unique_ptr<std::thread> pThread;
+  std::unique_ptr<Context> ctx;
 
-  bool quit;
+  void GuiThread();
+  void renderFrame();
 };
 
 #endif // SDL2DISPLAY_H

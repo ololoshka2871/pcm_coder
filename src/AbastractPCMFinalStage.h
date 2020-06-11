@@ -26,7 +26,7 @@ struct AbastractPCMFinalStage {
   LockingQueue<std::unique_ptr<PCMFrame>> &getQueue() { return inputQueue; }
 
 protected:
-  virtual void processPCMFrame(const std::unique_ptr<PCMFrame> &frame) = 0;
+  virtual void processPCMFrame(std::unique_ptr<PCMFrame> &frame) = 0;
   virtual void onThreadExit() {}
 
   const size_t width;

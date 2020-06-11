@@ -24,7 +24,7 @@ set(FFmpegVideoReader_SRC
     ${FFmpegVideoReader_DIR}/FFmpegVideoWriter.cpp
 )
 
-add_library(FFmpegVideoReader ${FFmpegVideoReader_SRC})
+add_library(FFmpegVideoReader STATIC ${FFmpegVideoReader_SRC})
 
 target_include_directories(FFmpegVideoReader
     PUBLIC
@@ -46,7 +46,7 @@ set(PlayerWriter_SRC
     ${PlayerWriter_DIR}/player.cpp
 )
 
-add_library(PlayerWriter ${PlayerWriter_SRC})
+add_library(PlayerWriter STATIC ${PlayerWriter_SRC})
 
 target_include_directories(PlayerWriter
     PUBLIC
@@ -65,6 +65,14 @@ target_link_libraries(PlayerWriter
 
 set(pcm_utils_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pcm_utils/pcm_utils)
 
-add_library(pcm_utils INTERFACE)
+set(pcm_utils_SRC
+    ${pcm_utils_DIR}/PQ.cpp
+    ${pcm_utils_DIR}/matrix_constants.cpp
+    ${pcm_utils_DIR}/matrix_equations.cpp
+    ${pcm_utils_DIR}/DataBlock.cpp
+    ${pcm_utils_DIR}/Sample.cpp
+)
 
-target_include_directories(pcm_utils INTERFACE ${pcm_utils_DIR})
+add_library(pcm_utils STATIC ${pcm_utils_SRC})
+
+target_include_directories(pcm_utils PUBLIC ${pcm_utils_DIR})

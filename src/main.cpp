@@ -207,10 +207,13 @@ int main(int argc, char *argv[]) {
   auto manager = createLineManager(options, consmer->getQueue());
   PCMLineGenerator lineGenerator{manager->getInputQueue()};
 
-  auto res = Pa_Initialize();
-  if (res != paNoError) {
-    std::cout << "Can't init PA (" << res << ")" << std::endl;
-    return 1;
+  PaError res;
+  if (options.Play) {
+    res = Pa_Initialize();
+    if (res != paNoError) {
+      std::cout << "Can't init PA (" << res << ")" << std::endl;
+      return 1;
+    }
   }
 
   {
@@ -239,7 +242,9 @@ int main(int argc, char *argv[]) {
 
   lineGenerator.flush();
 
-  Pa_Terminate();
+  if (options.Play) {
+    Pa_Terminate();
+  }
 
   return 0;
 }

@@ -1,6 +1,8 @@
 #include <string>
 #include <thread>
 
+#include <iostream>
+
 #include "pcmfrmagemanager.h"
 
 PCMFrmageManager::PCMFrmageManager(
@@ -44,8 +46,12 @@ void PCMFrmageManager::thread_func() {
       break;
     }
 
-    for (const auto &sample : line.getData()) {
-      *mainItherator = sample;
+    int counter = 0;
+    for (auto it = line.iterator(); it != line.pCRC(); ++it) {
+      auto &dest = *mainItherator;
+
+      dest = *it;
+
       if (mainItherator.lastItem()) {
         process_redy_frame();
       }
@@ -68,4 +74,9 @@ void PCMFrmageManager::process_redy_frame() {
   outQeue.push(std::move(processedFrame));
 }
 
-void PCMFrmageManager::generateCRC(std::unique_ptr<PCMFrame> &frame) {}
+void PCMFrmageManager::generateCRC(std::unique_ptr<PCMFrame> &frame) {
+  for (auto line = 0; line < heigth; ++line) {
+    auto pl = frame->getLine(line);
+    *pl->pCRC() = pl->generateCRC();
+  }
+}
