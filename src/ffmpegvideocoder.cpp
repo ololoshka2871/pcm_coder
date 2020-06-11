@@ -3,8 +3,9 @@
 FFmpegVideoCoder::FFmpegVideoCoder(size_t width, size_t heigth,
                                    const std::string &filename,
                                    const std::string &codec,
-                                   const uint32_t bitrate, bool cut)
-    : AbastractPCMFinalStage(width, heigth) {}
+                                   const uint32_t bitrate, bool cut,
+                                   uint32_t queueSize)
+    : AbastractPCMFinalStage(width, heigth, queueSize) {}
 
 FFmpegVideoCoder::~FFmpegVideoCoder() {}
 

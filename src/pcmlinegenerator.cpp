@@ -21,9 +21,8 @@ void PCMLineGenerator::input(
 
   for (auto it = start; it != end; ++it) {
     if (itl == itl_data_end) {
-      const auto [P, Q] = line.generatePQ();
-      *itl++ = P;
-      *itl = Q;
+      *itl++ = line.generateP();
+      *itl = line.generateQ();
 
       sendLine(line);
 

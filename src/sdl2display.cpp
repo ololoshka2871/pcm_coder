@@ -72,9 +72,10 @@ static void reset_texture(SDL_Texture *texture, int width, int heigth) {
 }
 
 SDL2Display::SDL2Display(size_t width, size_t heigth,
-                         const std::function<void()> &onClose)
-    : AbastractPCMFinalStage(width, heigth), ctx{std::make_unique<Context>(
-                                                 onClose)} {
+                         const std::function<void()> &onClose,
+                         uint32_t queueSize)
+    : AbastractPCMFinalStage(width, heigth, queueSize),
+      ctx{std::make_unique<Context>(onClose)} {
 
   ctx->pThread.reset(
       new std::thread{[](SDL2Display *_this) { _this->GuiThread(); }, this});

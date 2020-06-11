@@ -22,8 +22,8 @@ struct PCMFrmageManager {
   static constexpr size_t PAL_HEIGTH = 625;
   static constexpr size_t NTSC_HEIGTH = 525;
 
-  PCMFrmageManager(bool isPal,
-                   LockingQueue<std::unique_ptr<PCMFrame>> &outQeue);
+  PCMFrmageManager(bool isPal, LockingQueue<std::unique_ptr<PCMFrame>> &outQeue,
+                   uint32_t quieueSize = 1);
   ~PCMFrmageManager();
 
   PCMFrmageManager &start();

@@ -2,6 +2,7 @@
 #define PCMLINE_H
 
 #include <array>
+#include <climits>
 #include <cstdint>
 
 struct PCMLine {
@@ -18,14 +19,17 @@ struct PCMLine {
     P_offset = TotalChanelSamples,
     Q_offset = P_offset + 1,
 
-    DATA_SAMPLES_COUNT = Q_offset + 1,
+    CRC_OFFSET = Q_offset + 1,
+
+    DATA_SAMPLES_COUNT = CRC_OFFSET,
     SAMPLES_COUNT = DATA_SAMPLES_COUNT + 1 // + CRC
   };
 
   static constexpr auto BITS_PRE_COLUMN = 14;
   static constexpr auto TOTAL_DATA_BITS_PRE_LINE =
       DATA_SAMPLES_COUNT * BITS_PRE_COLUMN;
-  static constexpr auto TOTAL_BITS_PRE_LINE = SAMPLES_COUNT * BITS_PRE_COLUMN;
+  static constexpr auto TOTAL_BITS_PRE_LINE =
+      TOTAL_DATA_BITS_PRE_LINE + sizeof(uint16_t) * CHAR_BIT;
 
   PCMLine() : data{}, isEof{false} {}
 
@@ -37,7 +41,6 @@ struct PCMLine {
 
   uint16_t generateP() const;
   uint16_t generateQ() const;
-  std::pair<uint16_t, uint16_t> generatePQ();
 
   uint16_t generateCRC() const;
 
@@ -53,14 +56,21 @@ struct PCMLine {
     return !!(data[column] & mask);
   }
 
+  inline bool getCRCBit(size_t bit_n) const {
+    auto mask = (1u << (sizeof(uint16_t) * CHAR_BIT - 1)) >> bit_n;
+    return !!(data[CRC_OFFSET] & mask);
+  }
+
+  uint8_t getByte(size_t byten) const;
+
 private:
   uint16_t data[TotalDataPreLineWithCRC];
   bool isEof;
 
   std::array<uint8_t, TotalChanelSamplesWithP * BITS_PRE_COLUMN>
-  toBinArray(uint16_t data[TotalDataPreLineWithCRC]);
+  toBinArray(const uint16_t data[]) const;
 
-  uint16_t QfromBinArray(std::array<uint8_t, BITS_PRE_COLUMN> &src);
+  uint16_t QfromBinArray(std::array<uint8_t, BITS_PRE_COLUMN> &src) const;
 };
 
 #endif // PCMLINE_H

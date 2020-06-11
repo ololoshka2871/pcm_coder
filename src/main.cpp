@@ -149,7 +149,7 @@ static void configure_ctrlc_listener() {
   sigaction(SIGINT, &sigIntHandler, nullptr);
 }
 
-static auto createConsumerThread(const Options &options) {
+static auto createConsumerThread(const Options &options, uint32_t queueSize) {
   static constexpr auto Width = 139; // fixme
 
   std::unique_ptr<AbastractPCMFinalStage> consumer;
@@ -157,13 +157,13 @@ static auto createConsumerThread(const Options &options) {
   if (options.Play) {
     consumer = std::make_unique<SDL2Display>(
         Width, PCMFrmageManager::getHeigth(options.pal),
-        []() { terminate_flag = true; });
+        []() { terminate_flag = true; }, queueSize);
   } else
 #endif
   {
     consumer = std::make_unique<FFmpegVideoCoder>(
         Width, PCMFrmageManager::getHeigth(options.pal), options.OutputFile,
-        options.codec, options.bitrate, options.Cut);
+        options.codec, options.bitrate, options.Cut, queueSize);
   }
 
   consumer->start();
@@ -171,10 +171,11 @@ static auto createConsumerThread(const Options &options) {
   return consumer;
 }
 
-static auto
-createLineManager(const Options &options,
-                  LockingQueue<std::unique_ptr<PCMFrame>> &outQueue) {
-  auto manager = std::make_unique<PCMFrmageManager>(options.pal, outQueue);
+static auto createLineManager(const Options &options,
+                              LockingQueue<std::unique_ptr<PCMFrame>> &outQueue,
+                              uint32_t quieueSize) {
+  auto manager =
+      std::make_unique<PCMFrmageManager>(options.pal, outQueue, quieueSize);
 
   manager->start();
 
@@ -197,14 +198,16 @@ int main(int argc, char *argv[]) {
 
   audioReader.dumpFileInfo(std::cout);
 
+  auto queuesSize = options.Play ? 1 : 5;
+
   const AudioSample<float> *audio_data;
   uint32_t frames_read;
   std::chrono::nanoseconds timestamp;
 
   SampleGenerator gen{options.width14, options.use_dither};
 
-  auto consmer = createConsumerThread(options);
-  auto manager = createLineManager(options, consmer->getQueue());
+  auto consmer = createConsumerThread(options, queuesSize);
+  auto manager = createLineManager(options, consmer->getQueue(), queuesSize);
   PCMLineGenerator lineGenerator{manager->getInputQueue()};
 
   PaError res;
@@ -216,15 +219,21 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  std::cout << "Start endcoding..." << std::endl;
+
+  auto start = std::chrono::high_resolution_clock::now();
   {
     std::unique_ptr<Player> player;
     if (options.Play) {
-      player = std::make_unique<Player>(0, 10, AudioReader::output_sample_rate);
+      player = std::make_unique<Player>(0, queuesSize,
+                                        AudioReader::output_sample_rate);
     }
 
     while (audioReader.getNextAudioData(audio_data, frames_read, timestamp)) {
+#if 0
       std::cout << "Input: Decodec " << frames_read
                 << " frames, TIMESATMP: " << timestamp << std::endl;
+#endif
       auto res = gen.convert(audio_data, frames_read);
 
       lineGenerator.input(res);
@@ -241,6 +250,13 @@ int main(int argc, char *argv[]) {
   }
 
   lineGenerator.flush();
+
+  auto stop = std::chrono::high_resolution_clock::now();
+
+  std::cout << "Working time: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(stop -
+                                                                     start)
+            << std::endl;
 
   if (options.Play) {
     Pa_Terminate();

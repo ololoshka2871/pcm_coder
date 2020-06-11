@@ -14,9 +14,19 @@ std::vector<uint8_t> PCMFrame::toPixels(uint8_t grayLevel,
     accessor.element(3, line) = grayLevel;
 
     auto pcmline = getLine(line);
-    for (auto bitn = 0; bitn < PCMLine::TOTAL_BITS_PRE_LINE; ++bitn) {
+    for (auto bitn = 0; bitn < PCMLine::TOTAL_DATA_BITS_PRE_LINE; ++bitn) {
       if (pcmline->getBit(bitn)) {
-        accessor.element(3 + bitn, line) = grayLevel;
+        accessor.element(5 + bitn, line) = grayLevel;
+      }
+    }
+
+    {
+      auto crc_but_n = 0;
+      for (auto bitn = PCMLine::TOTAL_DATA_BITS_PRE_LINE;
+           bitn < PCMLine::TOTAL_BITS_PRE_LINE; ++bitn, ++crc_but_n) {
+        if (pcmline->getCRCBit(crc_but_n)) {
+          accessor.element(5 + bitn, line) = grayLevel;
+        }
       }
     }
 

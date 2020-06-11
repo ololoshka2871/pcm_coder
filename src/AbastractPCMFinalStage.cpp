@@ -2,8 +2,9 @@
 
 #include "AbastractPCMFinalStage.h"
 
-AbastractPCMFinalStage::AbastractPCMFinalStage(size_t width, size_t heigth)
-    : inputQueue{1}, width{width}, heigth{heigth} {}
+AbastractPCMFinalStage::AbastractPCMFinalStage(size_t width, size_t heigth,
+                                               uint32_t queueSize)
+    : inputQueue{queueSize}, width{width}, heigth{heigth} {}
 
 AbastractPCMFinalStage::~AbastractPCMFinalStage() {
   if (pThread != nullptr) {

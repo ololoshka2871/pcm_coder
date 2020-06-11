@@ -71,6 +71,7 @@ set(pcm_utils_SRC
     ${pcm_utils_DIR}/matrix_equations.cpp
     ${pcm_utils_DIR}/DataBlock.cpp
     ${pcm_utils_DIR}/Sample.cpp
+    ${pcm_utils_DIR}/testlib.cpp
 )
 
 add_library(pcm_utils STATIC ${pcm_utils_SRC})

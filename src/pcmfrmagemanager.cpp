@@ -6,8 +6,9 @@
 #include "pcmfrmagemanager.h"
 
 PCMFrmageManager::PCMFrmageManager(
-    bool isPal, LockingQueue<std::unique_ptr<PCMFrame>> &outQeue)
-    : heigth{getHeigth(isPal)}, inputQueue{1}, outQeue{outQeue},
+    bool isPal, LockingQueue<std::unique_ptr<PCMFrame>> &outQeue,
+    uint32_t quieueSize)
+    : heigth{getHeigth(isPal)}, inputQueue{quieueSize}, outQeue{outQeue},
       currentFrame{std::make_unique<PCMFrame>(heigth)},
       nextFrame{std::make_unique<PCMFrame>(heigth)}, mainItherator{
                                                          *currentFrame} {}

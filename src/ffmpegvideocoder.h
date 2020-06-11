@@ -6,7 +6,7 @@
 struct FFmpegVideoCoder : public AbastractPCMFinalStage {
   FFmpegVideoCoder(size_t width, size_t heigth, const std::string &filename,
                    const std::string &codec, const uint32_t bitrate = -1,
-                   bool cut = false);
+                   bool cut = false, uint32_t queueSize = 1);
 
   ~FFmpegVideoCoder() override;
 

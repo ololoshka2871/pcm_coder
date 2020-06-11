@@ -11,8 +11,8 @@ class thread;
 }
 
 struct SDL2Display : public AbastractPCMFinalStage {
-  SDL2Display(size_t width, size_t heigth,
-              const std::function<void()> &onClose);
+  SDL2Display(size_t width, size_t heigth, const std::function<void()> &onClose,
+              uint32_t queueSize = 1);
 
   ~SDL2Display() override;
 

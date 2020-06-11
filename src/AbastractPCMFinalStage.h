@@ -16,7 +16,7 @@ struct AbastractPCMFinalStage {
   // Создает новый AVFrame и кодирует PCMFrame в него. затем отправляет FFmpeg'у
   // на запись
 
-  AbastractPCMFinalStage(size_t width, size_t heigth);
+  AbastractPCMFinalStage(size_t width, size_t heigth, uint32_t queuesSize = 1);
 
   virtual ~AbastractPCMFinalStage();
 
