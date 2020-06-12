@@ -2,11 +2,12 @@
 #define PCMFRAME_H
 
 #include <climits>
-#include <vector>
+
+#include "iframe.h"
 
 #include "pcmline.h"
 
-struct PCMFrame {
+struct PCMFrame : public IFrame {
   friend struct SampleStairsItherator;
 
   // промежуточный кадр. Содержит в себе PCM-данные как uint16_t
@@ -25,16 +26,12 @@ struct PCMFrame {
   PCMFrame(size_t heigth);
 
   std::vector<uint8_t> toPixels(uint8_t grayLevel = 150,
-                                uint8_t white_lvl = 255) const;
+                                uint8_t white_lvl = 255) const override;
 
   PCMLine *getLine(size_t line_n);
   const PCMLine *getLine(size_t line_n) const;
 
-  size_t getHeigth() const { return heigth; };
-
 private:
-  size_t heigth;
-
   std::vector<PCMLine> data;
 };
 

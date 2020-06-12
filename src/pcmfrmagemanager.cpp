@@ -6,7 +6,7 @@
 #include "pcmfrmagemanager.h"
 
 PCMFrmageManager::PCMFrmageManager(
-    bool isPal, LockingQueue<std::unique_ptr<PCMFrame>> &outQeue,
+    bool isPal, LockingQueue<std::unique_ptr<IFrame>> &outQeue,
     uint32_t quieueSize)
     : heigth{getHeigth(isPal)}, inputQueue{quieueSize}, outQeue{outQeue},
       currentFrame{std::make_unique<PCMFrame>(heigth)},
@@ -47,7 +47,6 @@ void PCMFrmageManager::thread_func() {
       break;
     }
 
-    int counter = 0;
     for (auto it = line.iterator(); it != line.pCRC(); ++it) {
       auto &dest = *mainItherator;
 

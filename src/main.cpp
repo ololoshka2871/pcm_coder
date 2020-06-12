@@ -8,8 +8,10 @@
 #include "audioreader.h"
 #include "samplegenerator.h"
 
+#include "PCMFinalStage.h"
 #include "pcmfrmagemanager.h"
 #include "pcmlinegenerator.h"
+#include "pixeldublicator.h"
 
 #include "ffmpegvideocoder.h"
 #ifdef SDL2
@@ -152,19 +154,25 @@ static void configure_ctrlc_listener() {
 static auto createConsumerThread(const Options &options, uint32_t queueSize) {
   static constexpr auto Width = 139; // fixme
 
-  std::unique_ptr<AbastractPCMFinalStage> consumer;
+  auto consumer = std::make_unique<PCMFinalStage>(
+      Width, PCMFrmageManager::getHeigth(options.pal), queueSize);
+
+  auto pixeldublicator =
+      std::make_unique<PixelDublicator>(720 / PCMFrame::PIXEL_WIDTH);
+
 #ifdef SDL2
   if (options.Play) {
-    consumer = std::make_unique<SDL2Display>(
-        Width, PCMFrmageManager::getHeigth(options.pal),
-        []() { terminate_flag = true; }, queueSize);
+    pixeldublicator->setConsumer(std::make_unique<SDL2Display>(
+        []() { terminate_flag = true; }, queueSize));
   } else
 #endif
   {
-    consumer = std::make_unique<FFmpegVideoCoder>(
-        Width, PCMFrmageManager::getHeigth(options.pal), options.OutputFile,
-        options.codec, options.bitrate, options.Cut, queueSize);
+    pixeldublicator->setConsumer(std::make_unique<FFmpegVideoCoder>(
+        options.OutputFile, options.codec, options.bitrate, options.Cut,
+        queueSize));
   }
+
+  consumer->setPolicy(std::move(pixeldublicator));
 
   consumer->start();
 
@@ -172,7 +180,7 @@ static auto createConsumerThread(const Options &options, uint32_t queueSize) {
 }
 
 static auto createLineManager(const Options &options,
-                              LockingQueue<std::unique_ptr<PCMFrame>> &outQueue,
+                              LockingQueue<std::unique_ptr<IFrame>> &outQueue,
                               uint32_t quieueSize) {
   auto manager =
       std::make_unique<PCMFrmageManager>(options.pal, outQueue, quieueSize);

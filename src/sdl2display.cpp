@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstring>
 #include <iostream>
 #include <map>
@@ -48,6 +49,8 @@ struct SDL2Display::Context {
 
   std::map<uint8_t, rgb565> pixelcache;
 
+  size_t width, heigth;
+
   bool quit;
 };
 
@@ -71,15 +74,9 @@ static void reset_texture(SDL_Texture *texture, int width, int heigth) {
   }
 }
 
-SDL2Display::SDL2Display(size_t width, size_t heigth,
-                         const std::function<void()> &onClose,
+SDL2Display::SDL2Display(const std::function<void()> &onClose,
                          uint32_t queueSize)
-    : AbastractPCMFinalStage(width, heigth, queueSize),
-      ctx{std::make_unique<Context>(onClose)} {
-
-  ctx->pThread.reset(
-      new std::thread{[](SDL2Display *_this) { _this->GuiThread(); }, this});
-}
+    : ctx{std::make_unique<Context>(onClose)} {}
 
 SDL2Display::~SDL2Display() {
   if (!ctx->quit) {
@@ -90,7 +87,15 @@ SDL2Display::~SDL2Display() {
   }
 }
 
-void SDL2Display::processPCMFrame(std::unique_ptr<PCMFrame> &frame) {
+void SDL2Display::Init(size_t width, size_t heigth) {
+  ctx->width = width;
+  ctx->heigth = heigth;
+
+  ctx->pThread.reset(
+      new std::thread{[](SDL2Display *_this) { _this->GuiThread(); }, this});
+}
+
+void SDL2Display::operator()(std::unique_ptr<IFrame> &frame) {
   {
     std::lock_guard guard(ctx->frame_guard);
     ctx->frameToDisplay = frame->toPixels();
@@ -105,9 +110,9 @@ void SDL2Display::processPCMFrame(std::unique_ptr<PCMFrame> &frame) {
 void SDL2Display::GuiThread() {
   SDL_Init(SDL_INIT_VIDEO);
 
-  ctx->window = SDL_CreateWindow(
-      "PCM", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, heigth,
-      SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_BORDERLESS);
+  ctx->window =
+      SDL_CreateWindow("PCM", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                       ctx->width, ctx->heigth, SDL_WINDOW_ALLOW_HIGHDPI);
 
   ctx->renderer = SDL_CreateRenderer(
       ctx->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -120,8 +125,9 @@ void SDL2Display::GuiThread() {
 
   {
     auto fmt = SDL_PIXELFORMAT_RGB565;
-    ctx->texture = SDL_CreateTexture(
-        ctx->renderer, fmt, SDL_TEXTUREACCESS_STREAMING, width, heigth);
+    ctx->texture =
+        SDL_CreateTexture(ctx->renderer, fmt, SDL_TEXTUREACCESS_STREAMING,
+                          ctx->width, ctx->heigth);
     {
       uint32_t f;
       SDL_QueryTexture(ctx->texture, &f, nullptr, nullptr, nullptr);
@@ -129,7 +135,7 @@ void SDL2Display::GuiThread() {
     }
   }
 
-  reset_texture(ctx->texture, width, heigth);
+  reset_texture(ctx->texture, ctx->width, ctx->heigth);
 
   ctx->event = std::make_unique<SDL_Event>();
 
@@ -165,9 +171,9 @@ void SDL2Display::renderFrame() {
       std::lock_guard guard(ctx->frame_guard);
       auto graysacle_data = &ctx->frameToDisplay[0];
 
-      for (auto line = 0; line < heigth; ++line) {
+      for (auto line = 0; line < ctx->heigth; ++line) {
         auto base = reinterpret_cast<rgb565 *>(&pixels[line * pitch]);
-        for (auto p = 0; p < width; ++p) {
+        for (auto p = 0; p < ctx->width; ++p) {
           auto pixel = *graysacle_data++;
           try {
             base[p] = ctx->pixelcache.at(pixel);

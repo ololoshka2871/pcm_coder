@@ -1,22 +1,26 @@
+#include <cstring>
+
 #include "MyTwoDimArray.h"
 
 #include "pcmframe.h"
 
-PCMFrame::PCMFrame(size_t heigth) : heigth{heigth}, data(heigth * WIDTH) {}
+PCMFrame::PCMFrame(size_t heigth) : IFrame(PIXEL_WIDTH, heigth), data(heigth) {}
 
 std::vector<uint8_t> PCMFrame::toPixels(uint8_t grayLevel,
                                         uint8_t white_lvl) const {
-  std::vector<uint8_t> res(PIXEL_WIDTH * heigth);
-  myTwoDimArray<uint8_t> accessor(res.data(), PIXEL_WIDTH, heigth);
+  std::vector<uint8_t> res(width() * heigth());
+  myTwoDimArray<uint8_t> dest(res.data(), width(), heigth());
 
-  for (auto line = 0; line < heigth; ++line) {
-    accessor.element(1, line) = grayLevel;
-    accessor.element(3, line) = grayLevel;
+  for (auto l = 0; l < heigth(); ++l) {
+    auto line = dest.getLine(l);
 
-    auto pcmline = getLine(line);
+    line[SYNC_LINE_1] = grayLevel;
+    line[SYNC_LINE_2] = grayLevel;
+
+    auto pcmline = getLine(l);
     for (auto bitn = 0; bitn < PCMLine::TOTAL_DATA_BITS_PRE_LINE; ++bitn) {
       if (pcmline->getBit(bitn)) {
-        accessor.element(5 + bitn, line) = grayLevel;
+        line[DATA_OFFSET_PIXELS + bitn] = grayLevel;
       }
     }
 
@@ -25,24 +29,19 @@ std::vector<uint8_t> PCMFrame::toPixels(uint8_t grayLevel,
       for (auto bitn = PCMLine::TOTAL_DATA_BITS_PRE_LINE;
            bitn < PCMLine::TOTAL_BITS_PRE_LINE; ++bitn, ++crc_but_n) {
         if (pcmline->getCRCBit(crc_but_n)) {
-          accessor.element(5 + bitn, line) = grayLevel;
+          line[DATA_OFFSET_PIXELS + bitn] = grayLevel;
         }
       }
     }
 
-    accessor.element(134, line) = white_lvl;
-    accessor.element(135, line) = white_lvl;
-    accessor.element(136, line) = white_lvl;
-    accessor.element(137, line) = white_lvl;
+    std::memset(&line[WHITE_LINE], white_lvl, WHITE_WIDTH);
   }
 
   return res;
 }
 
-PCMLine *PCMFrame::getLine(size_t line_n) {
-  return reinterpret_cast<PCMLine *>(&data.at(line_n * WIDTH));
-}
+PCMLine *PCMFrame::getLine(size_t line_n) { return &data.at(line_n); }
 
 const PCMLine *PCMFrame::getLine(size_t line_n) const {
-  return reinterpret_cast<const PCMLine *>(&data.at(line_n * WIDTH));
+  return &data.at(line_n);
 }

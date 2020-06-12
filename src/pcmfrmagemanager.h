@@ -22,7 +22,7 @@ struct PCMFrmageManager {
   static constexpr size_t PAL_HEIGTH = 625;
   static constexpr size_t NTSC_HEIGTH = 525;
 
-  PCMFrmageManager(bool isPal, LockingQueue<std::unique_ptr<PCMFrame>> &outQeue,
+  PCMFrmageManager(bool isPal, LockingQueue<std::unique_ptr<IFrame>> &outQeue,
                    uint32_t quieueSize = 1);
   ~PCMFrmageManager();
 
@@ -36,7 +36,7 @@ struct PCMFrmageManager {
 private:
   size_t heigth;
   LockingQueue<PCMLine> inputQueue;
-  LockingQueue<std::unique_ptr<PCMFrame>> &outQeue;
+  LockingQueue<std::unique_ptr<IFrame>> &outQeue;
 
   std::unique_ptr<std::thread> pThread;
 

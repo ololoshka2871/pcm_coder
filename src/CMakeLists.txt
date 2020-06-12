@@ -21,15 +21,23 @@ set(SRC
     pcmlinegenerator.cpp
     pcmframe.h
     pcmframe.cpp
+    frame.h
+    frame.cpp
     pcmfrmagemanager.h
     pcmfrmagemanager.cpp
     samplestairsitherator.h
     samplestairsitherator.cpp
-    AbastractPCMFinalStage.h
-    AbastractPCMFinalStage.cpp
+    PCMFinalStage.h
+    PCMFinalStage.cpp
 
     ffmpegvideocoder.h
     ffmpegvideocoder.cpp
+
+    ipcmframeprocessingpolicy.h
+    iframe.h
+
+    pixeldublicator.h
+    pixeldublicator.cpp
 )
 
 if (SDL2_FOUND)

@@ -1,12 +1,13 @@
 #include "ffmpegvideocoder.h"
 
-FFmpegVideoCoder::FFmpegVideoCoder(size_t width, size_t heigth,
-                                   const std::string &filename,
+FFmpegVideoCoder::FFmpegVideoCoder(const std::string &filename,
                                    const std::string &codec,
                                    const uint32_t bitrate, bool cut,
-                                   uint32_t queueSize)
-    : AbastractPCMFinalStage(width, heigth, queueSize) {}
+                                   uint32_t queueSize) {}
 
-FFmpegVideoCoder::~FFmpegVideoCoder() {}
+void FFmpegVideoCoder::Init(size_t width, size_t heigth) {
+  this->width = width;
+  this->heigth = heigth;
+}
 
-void FFmpegVideoCoder::processPCMFrame(std::unique_ptr<PCMFrame> &frame) {}
+void FFmpegVideoCoder::operator()(std::unique_ptr<IFrame> &frame) {}
