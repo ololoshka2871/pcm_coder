@@ -4,3 +4,6 @@
 [submodule "libs/pcm_utils"]
 	path = libs/pcm_utils
 	url = https://github.com/ololoshka2871/pcm_utils.git
+[submodule "libs/progress-cpp"]
+	path = libs/progress-cpp
+	url = https://github.com/prakhar1989/progress-cpp.git

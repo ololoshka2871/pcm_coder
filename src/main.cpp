@@ -13,6 +13,11 @@
 #include "pcmlinegenerator.h"
 #include "pixeldublicator.h"
 
+#include "progresscpp/ProgressBar.hpp"
+
+#include <sys/ioctl.h>
+#include <unistd.h>
+
 #include "ffmpegvideocoder.h"
 #ifdef SDL2
 #include "sdl2display.h"
@@ -133,7 +138,7 @@ static Options configureArgumentParcer(CLI::App &app) {
   Options::newFlag(app, "--pal,!--ntsc", options.pal,
                    "Output video format: PAL/NTSC.", options.formatsStr());
   Options::newFlag(app, "--14,!--16", options.width14,
-                   "Output bit widtht: 14/16 bit.", options.bitWidthsStr());
+                   "Output bit widtht: 14/16 bit. 16BIT NOT WORKING YET", options.bitWidthsStr());
   Options::newFlag(app, "--with-dither,!--no-dither,!--ND", options.use_dither,
                    "Use dither when convering 16 bit -> 14 bit.");
   Options::newFlag(app, "--with-parity,!--no-parity,!--NP", options.parity,
@@ -141,7 +146,7 @@ static Options configureArgumentParcer(CLI::App &app) {
   Options::newFlag(app, "--with-q,!--no-q,!--NQ", options.Q, "Generate Q.");
   Options::newFlag(app, "--copy-protection,!--no-copy-protection,--CP",
                    options.copyProtection, "Set copy protection bit.");
-  Options::newFlag(app, "-C,--Cut", options.Cut, "Cut-out invisavle strings.");
+  Options::newFlag(app, "-C,--Cut", options.Cut, "Cut-out invisavle strings. 16BIT NOT WORKING YET");
   Options::newOption(app, "-b,--video-bitrate", options.bitrate,
                      "Set video bitrate (if not Uncompresed).")
       ->needs(output)
@@ -200,6 +205,26 @@ static auto createLineManager(const Options &options,
   return manager;
 }
 
+static progresscpp::ProgressBar initProgressBar(uint32_t limit) {
+  int cols;
+
+#ifdef TIOCGSIZE
+  struct ttysize ts;
+  ioctl(STDIN_FILENO, TIOCGSIZE, &ts);
+  cols = ts.ts_cols;
+#elif defined(TIOCGWINSZ)
+  struct winsize ts;
+  ioctl(STDIN_FILENO, TIOCGWINSZ, &ts);
+  cols = ts.ws_col;
+#endif /* TIOCGSIZE */
+
+  if (cols == 0) {
+    cols = 80;
+  }
+
+  return progresscpp::ProgressBar{limit, static_cast<uint32_t>(cols - 20)};
+}
+
 static void separator(std::ostream &os) { os << std::endl; }
 
 int main(int argc, char *argv[]) {
@@ -242,7 +267,10 @@ int main(int argc, char *argv[]) {
 
   std::cout << "Start endcoding..." << std::endl;
 
-  auto start = std::chrono::high_resolution_clock::now();
+  auto progressBar = initProgressBar(
+      std::chrono::duration_cast<std::chrono::seconds>(audioReader.duration())
+          .count());
+
   {
     std::unique_ptr<Player> player;
     if (options.Play()) {
@@ -259,25 +287,29 @@ int main(int argc, char *argv[]) {
 
       lineGenerator.input(res);
 
+      auto ts_s =
+          std::chrono::duration_cast<std::chrono::seconds>(timestamp).count();
+
+      // --- Грязный хак ---
+      *reinterpret_cast<unsigned int *>(&progressBar) = ts_s;
+
+      progressBar.display();
+
       if (options.Play()) {
         player->play(res.data()->all, frames_read * 2, 0.5);
       }
 
       if (terminate_flag) {
+        progressBar.done();
         std::cout << "Interrupt!" << std::endl;
-        break;
+        goto done;
       }
     }
+    progressBar.done();
   }
 
+done:
   lineGenerator.flush();
-
-  auto stop = std::chrono::high_resolution_clock::now();
-
-  std::cout << "Working time: "
-            << std::chrono::duration_cast<std::chrono::milliseconds>(stop -
-                                                                     start)
-            << std::endl;
 
   if (options.Play()) {
     Pa_Terminate();

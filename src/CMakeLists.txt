@@ -53,6 +53,7 @@ target_link_libraries(${PROJECT_NAME}
         FFmpegVideoReader
         PlayerWriter
         pcm_utils
+        progresscpp
         stdc++
 )
 

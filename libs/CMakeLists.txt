@@ -77,3 +77,9 @@ set(pcm_utils_SRC
 add_library(pcm_utils STATIC ${pcm_utils_SRC})
 
 target_include_directories(pcm_utils PUBLIC ${pcm_utils_DIR})
+
+##############
+# progress-cpp
+##############
+
+add_subdirectory(progress-cpp)
