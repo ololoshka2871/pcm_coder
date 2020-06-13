@@ -54,7 +54,7 @@ target_link_libraries(${PROJECT_NAME}
         PlayerWriter
         pcm_utils
         progresscpp
-        stdc++
+        #stdc++
 )
 
 if (SDL2_FOUND)
@@ -65,7 +65,7 @@ if (SDL2_FOUND)
             PlayerWriter
             pcm_utils
             SDL2::SDL2main SDL2::SDL2
-            stdc++
+            #stdc++
     )
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC

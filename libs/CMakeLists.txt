@@ -1,5 +1,5 @@
 
-find_package(FFmpeg REQUIRED)
+find_package(FFMPEG REQUIRED)
 find_package(Portaudio REQUIRED)
 
 ##############
@@ -11,6 +11,10 @@ set(CLI11_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CLI11/include)
 add_library(CLI11 INTERFACE)
 
 target_include_directories(CLI11 INTERFACE ${CLI11_DIR})
+
+if(MSVC)
+target_compile_options(CLI11 INTERFACE /std:c++latest)
+endif()
 
 ##############
 # FFmpegVideoReader
@@ -28,8 +32,11 @@ add_library(FFmpegVideoReader STATIC ${FFmpegVideoReader_SRC})
 
 target_include_directories(FFmpegVideoReader
     PUBLIC
+		${FFMPEG_INCLUDE_DIRS}
         ${FFmpegVideoReader_DIR}
 )
+
+# message(STATUS ${FFMPEG_INCLUDE_DIRS})
 
 target_link_libraries(FFmpegVideoReader
     PUBLIC
@@ -50,6 +57,7 @@ add_library(PlayerWriter STATIC ${PlayerWriter_SRC})
 
 target_include_directories(PlayerWriter
     PUBLIC
+		${PORTAUDIO_INCLUDE_DIRS}
         ${PlayerWriter_DIR}
 )
 

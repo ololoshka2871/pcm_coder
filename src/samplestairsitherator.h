@@ -1,6 +1,7 @@
 #ifndef SAMPLESTAIRSITHERATOR_H
 #define SAMPLESTAIRSITHERATOR_H
 
+#include <cstddef>
 #include <iterator>
 
 #include "pcmframe.h"
@@ -26,13 +27,13 @@ struct SampleStairsItherator {
   SampleStairsItherator &operator++();
 
 private:
-  SampleStairsItherator(PCMFrame *frame, ssize_t row, size_t column)
+  SampleStairsItherator(PCMFrame *frame, int32_t row, size_t column)
       : frame{frame}, row{row}, column{column} {}
 
   PCMFrame *frame;
 
 public:
-  ssize_t row;
+  int32_t row;
   size_t column;
 };
 

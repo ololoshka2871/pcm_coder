@@ -135,8 +135,6 @@ ELSE ()
 
 ENDIF()
 
-message(STATUS ${FFMPEG_LIBRARIES} ${FFMPEG_LIBAVFORMAT_LIBRARIES})
-
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set FFMPEG_FOUND to TRUE
 # if all listed variables are TRUE

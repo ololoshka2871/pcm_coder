@@ -15,8 +15,12 @@
 
 #include "progresscpp/ProgressBar.hpp"
 
+#ifdef _MSC_VER
+#include <windows.h>
+#else
 #include <sys/ioctl.h>
 #include <unistd.h>
+#endif
 
 #include "ffmpegvideocoder.h"
 #ifdef SDL2
@@ -38,6 +42,9 @@ struct Options {
   }
 
   template <>
+#ifdef _MSC_VER
+  static
+#endif
   auto newOption<std::string>(CLI::App &app, const std::string &option_name,
                               std::string &value,
                               const std::string &description) {
@@ -55,6 +62,9 @@ struct Options {
   }
 
   template <>
+#ifdef _MSC_VER
+  static
+#endif
   std::string generate_default_str<bool>(std::string &default_str,
                                          const bool &val) {
     return default_str.empty() ? " [Default: " + Options::printBool(val) + "]"
@@ -156,6 +166,13 @@ static Options configureArgumentParcer(CLI::App &app) {
 }
 
 static void configure_ctrlc_listener() {
+#ifdef _MSC_VER
+  // https://stackoverflow.com/questions/18291284/handle-ctrlc-on-win32
+  if (!SetConsoleCtrlHandler([](DWORD) {terminate_flag = true; return TRUE; }, TRUE)) {
+      std::cout << "ERROR: Could not set control handler" << std::endl;
+      exit(1);
+  }
+#else
   struct sigaction sigIntHandler;
 
   sigIntHandler.sa_handler = [](int) { terminate_flag = true; };
@@ -163,6 +180,7 @@ static void configure_ctrlc_listener() {
   sigIntHandler.sa_flags = 0;
 
   sigaction(SIGINT, &sigIntHandler, nullptr);
+#endif
 }
 
 static auto createConsumerThread(const Options &options, uint32_t queueSize) {
@@ -208,6 +226,13 @@ static auto createLineManager(const Options &options,
 static progresscpp::ProgressBar initProgressBar(uint32_t limit) {
   int cols;
 
+#ifdef _MSC_VER
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  int columns, rows;
+
+  GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+  cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+#else
 #ifdef TIOCGSIZE
   struct ttysize ts;
   ioctl(STDIN_FILENO, TIOCGSIZE, &ts);
@@ -221,6 +246,7 @@ static progresscpp::ProgressBar initProgressBar(uint32_t limit) {
   if (cols == 0) {
     cols = 80;
   }
+#endif
 
   return progresscpp::ProgressBar{limit, static_cast<uint32_t>(cols - 20)};
 }

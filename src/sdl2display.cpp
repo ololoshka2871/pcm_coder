@@ -10,11 +10,21 @@
 #include "sdl2display.h"
 
 union rgb565 {
+#ifdef _MSC_VER
+#pragma pack(push, 1)
+    struct {
+        unsigned r : 5;
+        unsigned g : 6;
+        unsigned b : 5;
+    };
+#pragma pack(pop)
+#else
   struct __attribute__((packed)) {
     unsigned r : 5;
     unsigned g : 6;
     unsigned b : 5;
   };
+#endif
   uint16_t raw;
 
   rgb565() : raw(0) {}
