@@ -21,8 +21,6 @@ struct PCMFrame14 {
 
   static constexpr auto pcm_shift_rows = 16;
 
-  static constexpr auto PAL_HEIGTH = 625;
-  static constexpr auto NTSC_HEIGTH = 525;
   static constexpr auto WIDTH = 139;
 
   static constexpr size_t initial_data_x_offset = 5;

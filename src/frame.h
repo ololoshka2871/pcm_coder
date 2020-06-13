@@ -5,18 +5,17 @@
 
 struct Frame : public IFrame {
   Frame(size_t width, size_t heigth)
-      : IFrame(width, heigth), m_pixels(width * heigth) {}
+      : IFrame(width, heigth), m_pixels(width, heigth) {}
 
   ~Frame();
 
-  std::vector<uint8_t>
-  toPixels(uint8_t grayLevel = default_gray_lvl,
-           uint8_t white_lvl = default_white_lvl) const override;
+  PixelContainer render(uint8_t grayLevel = default_gray_lvl,
+                        uint8_t white_lvl = default_white_lvl) const override;
 
-  uint8_t *data_pixels() { return m_pixels.data(); }
+  uint8_t *data_pixels() { return m_pixels.pixels.data(); }
 
 private:
-  std::vector<uint8_t> m_pixels;
+  PixelContainer m_pixels;
 };
 
 #endif // FRAME_H

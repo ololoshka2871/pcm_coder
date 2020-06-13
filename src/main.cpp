@@ -66,16 +66,17 @@ struct Options {
         ->expected(0);
   }
 
-  static const char uncompressed[];
+  static const char uncompresed[];
 
-  std::string codec{uncompressed};
+  std::string codec{uncompresed};
   bool pal = true;
   bool width14 = true;
   bool use_dither = true;
   bool parity = true;
   bool Q = true;
+  bool copyProtection = true;
   bool Cut = false;
-  bool Play = false;
+
   uint32_t bitrate = 15000;
   std::string InputFile;
   std::string OutputFile;
@@ -84,38 +85,51 @@ struct Options {
   std::string bitWidthsStr() const { return width14 ? "14 bit" : "16 bit"; }
   static std::string printBool(bool v) { return v ? "YES" : "NO"; }
 
+  bool Play() const { return OutputFile.empty(); }
+
   void dump(std::ostream &os) const {
     using namespace std;
 
-    os << "Coder options:" << endl
-       << "\tInutput file: " << InputFile << endl
-       << "\tOutput File: " << OutputFile << endl
-       << "\tCodec: " << codec << endl
+    os << "Coder options:" << endl << "\tInutput file: " << InputFile << endl;
+    if (!Play()) {
+      os << "\tOutput File: " << OutputFile << endl;
+    }
+    os << "\tCodec: " << codec << endl
        << "\tFormat: " << formatsStr() << endl
        << "\tBit width: " << bitWidthsStr() << endl
        << "\tUse diter: " << printBool(width14 ? use_dither : false) << endl
        << "\tGenerate parity: " << printBool(parity) << endl
-       << "Play sound: " << printBool(Play) << endl;
+       << "\tAdd copy-protection bit: " << printBool(copyProtection) << endl;
     if (width14) {
       os << "\tGenerate Q: " << printBool(Q) << endl;
     }
     os << "\tCut video: " << printBool(Cut) << endl;
-    if (codec != uncompressed) {
+    if (codec != uncompresed) {
       os << "\tVideo bitrate: " << bitrate << endl;
     }
   }
 };
 
-const char Options::uncompressed[] = "Uncompressed";
+const char Options::uncompresed[] = "rawvideo";
 
 static bool terminate_flag = false;
 
 static Options configureArgumentParcer(CLI::App &app) {
   Options options;
 
+  app.add_option("audiofile", options.InputFile, "Audiofile to process.")
+      ->expected(1)
+      ->required()
+      ->check(CLI::ExistingFile);
+  auto output =
+      app.add_option("outputfile", options.OutputFile, "Result video file.")
+          ->expected(1);
+
   auto codec_opt =
       Options::newOption(app, "-c,--video-codec", options.codec,
-                         "Video codec to compress result (for FFmpeg).");
+                         "Video codec to compress result (for FFmpeg).")
+          ->needs(output);
+
   Options::newFlag(app, "--pal,!--ntsc", options.pal,
                    "Output video format: PAL/NTSC.", options.formatsStr());
   Options::newFlag(app, "--14,!--16", options.width14,
@@ -125,18 +139,13 @@ static Options configureArgumentParcer(CLI::App &app) {
   Options::newFlag(app, "--with-parity,!--no-parity,!--NP", options.parity,
                    "Generate parity.");
   Options::newFlag(app, "--with-q,!--no-q,!--NQ", options.Q, "Generate Q.");
+  Options::newFlag(app, "--copy-protection,!--no-copy-protection,--CP",
+                   options.copyProtection, "Set copy protection bit.");
   Options::newFlag(app, "-C,--Cut", options.Cut, "Cut-out invisavle strings.");
-  Options::newFlag(app, "--play", options.Play, "Play sound while converting");
   Options::newOption(app, "-b,--video-bitrate", options.bitrate,
-                     "Set video bitrate (if not Uncompressed).")
+                     "Set video bitrate (if not Uncompresed).")
+      ->needs(output)
       ->needs(codec_opt);
-  app.add_option("audiofile", options.InputFile, "Audiofile to process.")
-      ->expected(1)
-      ->required()
-      ->check(CLI::ExistingFile);
-  app.add_option("outputfile", options.OutputFile, "Result video file.")
-      ->expected(1)
-      ->required();
 
   return options;
 }
@@ -161,15 +170,15 @@ static auto createConsumerThread(const Options &options, uint32_t queueSize) {
       std::make_unique<PixelDublicator>(720 / PCMFrame::PIXEL_WIDTH);
 
 #ifdef SDL2
-  if (options.Play) {
+  if (options.Play()) {
     pixeldublicator->setConsumer(std::make_unique<SDL2Display>(
         []() { terminate_flag = true; }, queueSize));
   } else
 #endif
   {
     pixeldublicator->setConsumer(std::make_unique<FFmpegVideoCoder>(
-        options.OutputFile, options.codec, options.bitrate, options.Cut,
-        queueSize));
+        options.OutputFile, options.codec, options.bitrate, options.pal,
+        options.Cut));
   }
 
   consumer->setPolicy(std::move(pixeldublicator));
@@ -182,8 +191,9 @@ static auto createConsumerThread(const Options &options, uint32_t queueSize) {
 static auto createLineManager(const Options &options,
                               LockingQueue<std::unique_ptr<IFrame>> &outQueue,
                               uint32_t quieueSize) {
-  auto manager =
-      std::make_unique<PCMFrmageManager>(options.pal, outQueue, quieueSize);
+  auto manager = std::make_unique<PCMFrmageManager>(
+      options.parity, options.Q, options.copyProtection, options.pal, outQueue,
+      quieueSize);
 
   manager->start();
 
@@ -206,7 +216,7 @@ int main(int argc, char *argv[]) {
 
   audioReader.dumpFileInfo(std::cout);
 
-  auto queuesSize = options.Play ? 1 : 5;
+  auto queuesSize = options.Play() ? 1 : 5;
 
   const AudioSample<float> *audio_data;
   uint32_t frames_read;
@@ -217,9 +227,12 @@ int main(int argc, char *argv[]) {
   auto consmer = createConsumerThread(options, queuesSize);
   auto manager = createLineManager(options, consmer->getQueue(), queuesSize);
   PCMLineGenerator lineGenerator{manager->getInputQueue()};
+  lineGenerator.set14BitMode(options.width14)
+      .setGenerateP(options.parity)
+      .setGenerateQ(options.Q);
 
   PaError res;
-  if (options.Play) {
+  if (options.Play()) {
     res = Pa_Initialize();
     if (res != paNoError) {
       std::cout << "Can't init PA (" << res << ")" << std::endl;
@@ -232,7 +245,7 @@ int main(int argc, char *argv[]) {
   auto start = std::chrono::high_resolution_clock::now();
   {
     std::unique_ptr<Player> player;
-    if (options.Play) {
+    if (options.Play()) {
       player = std::make_unique<Player>(0, queuesSize,
                                         AudioReader::output_sample_rate);
     }
@@ -246,12 +259,12 @@ int main(int argc, char *argv[]) {
 
       lineGenerator.input(res);
 
-      if (options.Play) {
+      if (options.Play()) {
         player->play(res.data()->all, frames_read * 2, 0.5);
       }
 
       if (terminate_flag) {
-        std::cout << "Keyboard interrupt!" << std::endl;
+        std::cout << "Interrupt!" << std::endl;
         break;
       }
     }
@@ -266,7 +279,7 @@ int main(int argc, char *argv[]) {
                                                                      start)
             << std::endl;
 
-  if (options.Play) {
+  if (options.Play()) {
     Pa_Terminate();
   }
 

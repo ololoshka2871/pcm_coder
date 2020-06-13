@@ -6,12 +6,14 @@
 #include "pcmfrmagemanager.h"
 
 PCMFrmageManager::PCMFrmageManager(
-    bool isPal, LockingQueue<std::unique_ptr<IFrame>> &outQeue,
-    uint32_t quieueSize)
-    : heigth{getHeigth(isPal)}, inputQueue{quieueSize}, outQeue{outQeue},
-      currentFrame{std::make_unique<PCMFrame>(heigth)},
-      nextFrame{std::make_unique<PCMFrame>(heigth)}, mainItherator{
-                                                         *currentFrame} {}
+    bool generate_P, bool generate_Q, bool copy_protection, bool isPal,
+    LockingQueue<std::unique_ptr<IFrame>> &outQeue, uint32_t quieueSize)
+    : heigth{getHeigth(isPal)}, headerlune{buildHeaderLine(
+                                    copy_protection, generate_P, generate_Q)},
+      inputQueue{quieueSize}, outQeue{outQeue},
+      currentFrame{std::make_unique<PCMFrame>(heigth, headerlune)},
+      nextFrame{std::make_unique<PCMFrame>(heigth, headerlune)},
+      mainItherator{*currentFrame} {}
 
 PCMFrmageManager::~PCMFrmageManager() {
   if (pThread != nullptr) {
@@ -33,11 +35,13 @@ PCMFrmageManager &PCMFrmageManager::start() {
 void PCMFrmageManager::join() { pThread->join(); }
 
 size_t PCMFrmageManager::getHeigth(bool isPal) {
-  return isPal ? PCMFrmageManager::PAL_HEIGTH : PCMFrmageManager::NTSC_HEIGTH;
+  return isPal ? PCMFrame::PAL_HEIGTH : PCMFrame::NTSC_HEIGTH;
 }
 
 void PCMFrmageManager::thread_func() {
   PCMLine line;
+  int frame_counter = 0;
+
   while (true) {
     inputQueue.pop(line);
 
@@ -54,6 +58,9 @@ void PCMFrmageManager::thread_func() {
 
       if (mainItherator.lastItem()) {
         process_redy_frame();
+#if 0
+        std::cout << "Generated " << frame_counter++ << " frames" << std::endl;
+#endif
       }
 
       ++mainItherator;
@@ -66,7 +73,8 @@ void PCMFrmageManager::thread_func() {
 }
 
 void PCMFrmageManager::process_redy_frame() {
-  std::unique_ptr<PCMFrame> processedFrame = std::make_unique<PCMFrame>(heigth);
+  std::unique_ptr<PCMFrame> processedFrame =
+      std::make_unique<PCMFrame>(heigth, headerlune);
 
   std::swap(processedFrame, currentFrame);
 
@@ -75,8 +83,24 @@ void PCMFrmageManager::process_redy_frame() {
 }
 
 void PCMFrmageManager::generateCRC(std::unique_ptr<PCMFrame> &frame) {
-  for (auto line = 0; line < heigth; ++line) {
+  for (auto line = 0; line < frame->heigth(); ++line) {
     auto pl = frame->getLine(line);
     *pl->pCRC() = pl->generateCRC();
   }
+}
+
+PCMLine PCMFrmageManager::buildHeaderLine(uint16_t copy_protection,
+                                          uint16_t have_P, uint16_t have_Q) {
+  PCMLine res;
+
+  res[0] = 0x3333;
+  res[1] = 0xCCCC;
+  res[2] = 0x3333;
+  res[3] = 0xCCCC;
+
+  res[7] = (copy_protection << 0) | (have_P << 1) | (have_Q << 2) | (1 << 3);
+
+  *res.pCRC() = res.generateCRC();
+
+  return res;
 }

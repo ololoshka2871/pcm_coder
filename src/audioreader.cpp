@@ -183,6 +183,10 @@ bool AudioReader::getNextAudioData(const AudioSample *&pData,
   pResampledFrame->sample_rate = output_sample_rate;
   pResampledFrame->format = AV_SAMPLE_FMT_FLT;
 
+  if (ctx->pFrame->channel_layout == 0) {
+    ctx->pFrame->channel_layout = AV_CH_LAYOUT_STEREO;
+  }
+
   auto err =
       swr_convert_frame(ctx->resampler_ctx, pResampledFrame, ctx->pFrame);
   if (err != 0) {

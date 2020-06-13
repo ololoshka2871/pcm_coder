@@ -12,17 +12,14 @@ struct FrameProxy : public IFrame {
       : IFrame(src_frame->width() * factor, src_frame->heigth()),
         src_frame{src_frame}, factor{factor} {}
 
-  std::vector<uint8_t>
-  toPixels(uint8_t grayLevel = default_gray_lvl,
-           uint8_t white_lvl = default_white_lvl) const override {
-    auto wide_frame = std::make_unique<Frame>(src_frame->width() * factor,
-                                              src_frame->heigth());
+  PixelContainer render(uint8_t grayLevel = default_gray_lvl,
+                        uint8_t white_lvl = default_white_lvl) const override {
+    auto src_pixels = src_frame->render(grayLevel, white_lvl);
 
-    auto src_pixels = src_frame->toPixels(grayLevel, white_lvl);
+    auto wide_frame = std::make_unique<Frame>(src_pixels.width() * factor,
+                                              src_pixels.heigth());
 
-    myTwoDimArray<uint8_t> src_accessor{
-        src_pixels.data(), static_cast<int32_t>(src_frame->width()),
-        static_cast<int32_t>(src_frame->heigth())};
+    auto src_accessor = src_pixels.getAccessor();
     myTwoDimArray<uint8_t> dest_accessor{
         wide_frame->data_pixels(), static_cast<int32_t>(wide_frame->width()),
         static_cast<int32_t>(wide_frame->heigth())};
@@ -38,7 +35,7 @@ struct FrameProxy : public IFrame {
       }
     }
 
-    return wide_frame->toPixels(grayLevel, white_lvl);
+    return wide_frame->render(grayLevel, white_lvl);
   }
 
 private:

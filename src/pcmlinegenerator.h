@@ -16,9 +16,14 @@ struct PCMLineGenerator {
 
   void flush();
 
+  PCMLineGenerator &set14BitMode(bool mode14Bit = true);
+  PCMLineGenerator &setGenerateP(bool generateP = true);
+  PCMLineGenerator &setGenerateQ(bool generateQ = true);
+
 private:
   std::vector<SampleGenerator::o_samples_format> overflow;
   LockingQueue<PCMLine> &outputQueue;
+  bool mode14Bit, generateP, generateQ;
 
   void sendLine(const PCMLine &line) { outputQueue.push(line); }
 

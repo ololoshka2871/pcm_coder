@@ -12,9 +12,6 @@ set(SRC
     samplegenerator.cpp
     audiosample.h
 
-    pcmframe14.h
-    pcmframe14.cpp
-
     pcmline.h
     pcmline.cpp
     pcmlinegenerator.h
@@ -79,5 +76,6 @@ endif()
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD ${CPP_STD})
 
+install(TARGETS ${PROJECT_NAME})
 
-
+add_custom_target(run ${CMAKE_CURENT_BINARY_DIR}/${PROJECT_NAME})

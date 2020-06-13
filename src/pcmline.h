@@ -63,6 +63,8 @@ struct PCMLine {
 
   uint8_t getByte(size_t byten) const;
 
+  void renderTo(uint8_t *pixelBuffer, uint8_t H) const;
+
 private:
   uint16_t data[TotalDataPreLineWithCRC];
   bool isEof;

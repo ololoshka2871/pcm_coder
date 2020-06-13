@@ -6,8 +6,9 @@
 
 Frame::~Frame() {}
 
-std::vector<uint8_t> Frame::toPixels(uint8_t grayLevel,
+IFrame::PixelContainer Frame::render(uint8_t grayLevel,
                                      uint8_t white_lvl) const {
+
   /*
 const auto pixel_heigth = SYNC_LINE_2 + 1 + width() + 1 + WHITE_WIDTH + 1;
 

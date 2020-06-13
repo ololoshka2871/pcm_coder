@@ -52,6 +52,24 @@ uint8_t PCMLine::getByte(size_t byten) const {
   return res;
 }
 
+void PCMLine::renderTo(uint8_t *pixelBuffer, uint8_t H) const {
+  for (auto bitn = 0; bitn < TOTAL_DATA_BITS_PRE_LINE; ++bitn) {
+    if (getBit(bitn)) {
+      *pixelBuffer = H;
+    }
+    ++pixelBuffer;
+  }
+
+  auto crc_but_n = 0;
+  for (auto bitn = TOTAL_DATA_BITS_PRE_LINE; bitn < TOTAL_BITS_PRE_LINE;
+       ++bitn, ++crc_but_n) {
+    if (getCRCBit(crc_but_n)) {
+      *pixelBuffer = H;
+    }
+    ++pixelBuffer;
+  }
+}
+
 uint16_t PCMLine::QfromBinArray(
     std::array<uint8_t, PCMLine::BITS_PRE_COLUMN> &src) const {
   uint16_t res = 0;

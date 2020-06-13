@@ -4,9 +4,30 @@
 #include <cstdint>
 #include <vector>
 
+#include "MyTwoDimArray.h"
+
 struct IFrame {
   static constexpr uint8_t default_gray_lvl = 150;
   static constexpr uint8_t default_white_lvl = 255;
+
+  struct PixelContainer {
+    PixelContainer(size_t width, size_t heigth)
+        : pixels(width * heigth), m_width{width}, m_heigth{heigth} {}
+
+    myTwoDimArray<uint8_t> getAccessor() {
+      return myTwoDimArray<uint8_t>{pixels.data(),
+                                    static_cast<int32_t>(m_width),
+                                    static_cast<int32_t>(m_heigth)};
+    }
+
+    size_t width() const { return m_width; }
+    size_t heigth() const { return m_heigth; }
+
+    std::vector<uint8_t> pixels;
+
+  private:
+    size_t m_width, m_heigth;
+  };
 
   enum {
     SYNC_LINE_1 = 1,
@@ -21,9 +42,9 @@ struct IFrame {
 
   virtual ~IFrame() {}
 
-  virtual std::vector<uint8_t>
-  toPixels(uint8_t grayLevel = default_gray_lvl,
-           uint8_t white_lvl = default_white_lvl) const = 0;
+  virtual PixelContainer
+  render(uint8_t grayLevel = default_gray_lvl,
+         uint8_t white_lvl = default_white_lvl) const = 0;
 
   virtual size_t width() const { return m_width; }
   virtual size_t heigth() const { return m_heigth; }

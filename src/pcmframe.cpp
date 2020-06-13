@@ -1,38 +1,52 @@
 #include <cstring>
 
-#include "MyTwoDimArray.h"
-
 #include "pcmframe.h"
 
-PCMFrame::PCMFrame(size_t heigth) : IFrame(PIXEL_WIDTH, heigth), data(heigth) {}
+PCMFrame::PCMFrame(size_t heigth, const PCMLine &headerLine)
+    : IFrame(PIXEL_WIDTH, heigth),
+      data(heigth - HEADER_SIZE_LINES), headerLine{headerLine} {}
 
-std::vector<uint8_t> PCMFrame::toPixels(uint8_t grayLevel,
+IFrame::PixelContainer PCMFrame::render(uint8_t grayLevel,
                                         uint8_t white_lvl) const {
-  std::vector<uint8_t> res(width() * heigth());
-  myTwoDimArray<uint8_t> dest(res.data(), width(), heigth());
+  PixelContainer res{width(), IFrame::heigth()};
+  auto dest = res.getAccessor();
 
-  for (auto l = 0; l < heigth(); ++l) {
+  // header
+  for (auto l = 0; l < HEADER_SIZE_LINES; ++l) {
     auto line = dest.getLine(l);
+    line[SYNC_LINE_1] = grayLevel;
+    line[SYNC_LINE_2] = grayLevel;
+
+    headerLine.renderTo(&line[DATA_OFFSET_PIXELS], grayLevel);
+
+    std::memset(&line[WHITE_LINE], white_lvl, WHITE_WIDTH);
+  }
+
+  // 0 -> 0
+  // 1 -> 2
+  // 2 -> 4
+  // 3 -> 6
+
+  // height / 2 - 1 -> 1
+  // height / 2 - 0 -> 3
+
+  size_t height = heigth();
+  for (size_t dl = 0; dl < height; ++dl) {
+    size_t l; // deinterlace destination
+    if (dl < height / 2) {
+      l = dl * 2;
+    } else {
+      l = (dl - height / 2) * 2 + 1;
+    }
+
+    auto line = dest.getLine(l + HEADER_SIZE_LINES);
 
     line[SYNC_LINE_1] = grayLevel;
     line[SYNC_LINE_2] = grayLevel;
 
-    auto pcmline = getLine(l);
-    for (auto bitn = 0; bitn < PCMLine::TOTAL_DATA_BITS_PRE_LINE; ++bitn) {
-      if (pcmline->getBit(bitn)) {
-        line[DATA_OFFSET_PIXELS + bitn] = grayLevel;
-      }
-    }
+    auto pcmline = getLine(dl);
 
-    {
-      auto crc_but_n = 0;
-      for (auto bitn = PCMLine::TOTAL_DATA_BITS_PRE_LINE;
-           bitn < PCMLine::TOTAL_BITS_PRE_LINE; ++bitn, ++crc_but_n) {
-        if (pcmline->getCRCBit(crc_but_n)) {
-          line[DATA_OFFSET_PIXELS + bitn] = grayLevel;
-        }
-      }
-    }
+    pcmline->renderTo(&line[DATA_OFFSET_PIXELS], grayLevel);
 
     std::memset(&line[WHITE_LINE], white_lvl, WHITE_WIDTH);
   }
@@ -45,3 +59,5 @@ PCMLine *PCMFrame::getLine(size_t line_n) { return &data.at(line_n); }
 const PCMLine *PCMFrame::getLine(size_t line_n) const {
   return &data.at(line_n);
 }
+
+size_t PCMFrame::heigth() const { return IFrame::heigth() - HEADER_SIZE_LINES; }

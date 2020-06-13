@@ -19,10 +19,8 @@ struct PCMFrmageManager {
   // записывает данные в PCMFrame
   // когда кадр полностью построен кладет его в очередь на энкодинг
 
-  static constexpr size_t PAL_HEIGTH = 625;
-  static constexpr size_t NTSC_HEIGTH = 525;
-
-  PCMFrmageManager(bool isPal, LockingQueue<std::unique_ptr<IFrame>> &outQeue,
+  PCMFrmageManager(bool generate_P, bool generate_Q, bool copy_protection,
+                   bool isPal, LockingQueue<std::unique_ptr<IFrame>> &outQeue,
                    uint32_t quieueSize = 1);
   ~PCMFrmageManager();
 
@@ -35,6 +33,7 @@ struct PCMFrmageManager {
 
 private:
   size_t heigth;
+  PCMLine headerlune;
   LockingQueue<PCMLine> inputQueue;
   LockingQueue<std::unique_ptr<IFrame>> &outQeue;
 
@@ -52,6 +51,9 @@ private:
   void process_redy_frame();
 
   void generateCRC(std::unique_ptr<PCMFrame> &frame);
+
+  static PCMLine buildHeaderLine(uint16_t copy_protection, uint16_t have_P,
+                                 uint16_t have_Q);
 };
 
 #endif // PCMFRMAGEMANAGER_H

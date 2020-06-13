@@ -79,12 +79,12 @@ SDL2Display::SDL2Display(const std::function<void()> &onClose,
     : ctx{std::make_unique<Context>(onClose)} {}
 
 SDL2Display::~SDL2Display() {
-  if (!ctx->quit) {
-    ctx->event->type = SDL_QUIT;
-    SDL_PushEvent(ctx->event.get());
-    ctx->quit = true;
-    ctx->pThread->join();
-  }
+  /*if (!ctx->quit) {*/
+  ctx->event->type = SDL_QUIT;
+  SDL_PushEvent(ctx->event.get());
+  ctx->quit = true;
+  ctx->pThread->join();
+  //}
 }
 
 void SDL2Display::Init(size_t width, size_t heigth) {
@@ -98,7 +98,7 @@ void SDL2Display::Init(size_t width, size_t heigth) {
 void SDL2Display::operator()(std::unique_ptr<IFrame> &frame) {
   {
     std::lock_guard guard(ctx->frame_guard);
-    ctx->frameToDisplay = frame->toPixels();
+    ctx->frameToDisplay = std::move(frame->render().pixels);
   }
 
   if (ctx->event) {
@@ -153,8 +153,6 @@ void SDL2Display::GuiThread() {
     }
   }
 
-  std::cerr << "Exit display" << std::endl;
-
   SDL_DestroyTexture(ctx->texture);
   SDL_DestroyRenderer(ctx->renderer);
   SDL_DestroyWindow(ctx->window);
@@ -165,10 +163,13 @@ void SDL2Display::renderFrame() {
   uint8_t *pixels;
   int pitch;
 
+  auto &cache = ctx->pixelcache;
+
   auto res = SDL_LockTexture(ctx->texture, nullptr, (void **)&pixels, &pitch);
   if (res == 0) {
     {
       std::lock_guard guard(ctx->frame_guard);
+
       auto graysacle_data = &ctx->frameToDisplay[0];
 
       for (auto line = 0; line < ctx->heigth; ++line) {
@@ -176,10 +177,10 @@ void SDL2Display::renderFrame() {
         for (auto p = 0; p < ctx->width; ++p) {
           auto pixel = *graysacle_data++;
           try {
-            base[p] = ctx->pixelcache.at(pixel);
+            base[p] = cache.at(pixel);
           } catch (std::out_of_range) {
-            ctx->pixelcache[pixel] = rgb565::gray(pixel);
-            base[p] = ctx->pixelcache.at(pixel);
+            cache[pixel] = rgb565::gray(pixel);
+            base[p] = cache.at(pixel);
           }
         }
       }
