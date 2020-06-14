@@ -1,6 +1,5 @@
 
 find_package(FFMPEG REQUIRED)
-find_package(Portaudio REQUIRED)
 
 ##############
 # CLI11
@@ -11,10 +10,6 @@ set(CLI11_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CLI11/include)
 add_library(CLI11 INTERFACE)
 
 target_include_directories(CLI11 INTERFACE ${CLI11_DIR})
-
-if(MSVC)
-target_compile_options(CLI11 INTERFACE /std:c++latest)
-endif()
 
 ##############
 # FFmpegVideoReader
@@ -32,7 +27,7 @@ add_library(FFmpegVideoReader STATIC ${FFmpegVideoReader_SRC})
 
 target_include_directories(FFmpegVideoReader
     PUBLIC
-		${FFMPEG_INCLUDE_DIRS}
+        ${FFMPEG_INCLUDE_DIRS}
         ${FFmpegVideoReader_DIR}
 )
 
@@ -47,25 +42,37 @@ target_link_libraries(FFmpegVideoReader
 # PlayerWriter
 ##############
 
-set(PlayerWriter_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pcm_utils/PlayerWriter)
+find_package(SDL2)
+find_package(PORTAUDIO)
 
-set(PlayerWriter_SRC
-    ${PlayerWriter_DIR}/player.cpp
-)
+if (SDL2_FOUND AND PORTAUDIO_FOUND)
+    set(PlayerWriter_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pcm_utils/PlayerWriter)
 
-add_library(PlayerWriter STATIC ${PlayerWriter_SRC})
+    set(PlayerWriter_SRC
+        ${PlayerWriter_DIR}/player.cpp
+    )
 
-target_include_directories(PlayerWriter
-    PUBLIC
-		${PORTAUDIO_INCLUDE_DIRS}
-        ${PlayerWriter_DIR}
-)
+    add_library(PlayerWriter STATIC ${PlayerWriter_SRC})
 
-target_link_libraries(PlayerWriter
-    PUBLIC
-        ${FFMPEG_LIBRARIES}
-        ${PORTAUDIO_LIBRARIES}
-)
+    target_include_directories(PlayerWriter
+        PUBLIC
+            ${PORTAUDIO_INCLUDE_DIRS}
+            ${PlayerWriter_DIR}
+    )
+
+    target_link_libraries(PlayerWriter
+        PUBLIC
+            ${FFMPEG_LIBRARIES}
+            ${PORTAUDIO_LIBRARIES}
+            SDL2::SDL2main SDL2::SDL2
+    )
+    target_compile_definitions(PlayerWriter PUBLIC -DPLAYER)
+    set(USE_PLAYER TRUE PARENT_SCOPE)
+else()
+    message(STATUS "SDL2 or Portaudio not found. Display pcm not supported!")
+    add_library(PlayerWriter INTERFACE)
+    set(USE_PLAYER FALSE PARENT_SCOPE)
+endif()
 
 ##############
 # pcm_utils

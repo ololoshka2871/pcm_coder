@@ -11,18 +11,16 @@
 
 using rgb565 = uint16_t;
 
-rgb565 Initrgb565() {
-    return 0;
-}
+rgb565 Initrgb565() { return 0; }
 
 rgb565 Initrgb565gray(uint8_t light) {
-    uint32_t r = (float)light * 31.0f / 255.0f;
-    r &= 0x1F;
-    uint32_t g = (float)light * 63.0f / 255.0f;
-    g &= 0x3F;
-    uint32_t b = (float)light * 31.0f / 255.0f;
-    b &= 0x1F;
-    return (r << (5 + 6)) | (g << 5) | (b);
+  uint32_t r = (float)light * 31.0f / 255.0f;
+  r &= 0x1F;
+  uint32_t g = (float)light * 63.0f / 255.0f;
+  g &= 0x3F;
+  uint32_t b = (float)light * 31.0f / 255.0f;
+  b &= 0x1F;
+  return (r << (5 + 6)) | (g << 5) | (b);
 }
 
 struct SDL2Display::Context {
@@ -50,7 +48,7 @@ struct SDL2Display::Context {
 
 static void reset_texture(SDL_Texture *texture, int width, int heigth) {
 
-  rgb565 test = Initrgb565();
+  rgb565 black = Initrgb565();
 
   rgb565 *pixels;
   int pitch;
@@ -59,7 +57,7 @@ static void reset_texture(SDL_Texture *texture, int width, int heigth) {
   if (res == 0) {
     for (auto line = 0; line < heigth; ++line) {
       for (auto p = 0; p < pitch / sizeof(rgb565); ++p) {
-        pixels[line * pitch / sizeof(rgb565) + p] = test;
+        pixels[line * pitch / sizeof(rgb565) + p] = black;
       }
     }
     SDL_UnlockTexture(texture);

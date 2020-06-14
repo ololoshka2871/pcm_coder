@@ -1,6 +1,3 @@
-
-find_package(SDL2)
-
 set(SRC
     main.cpp
 
@@ -37,7 +34,7 @@ set(SRC
     pixeldublicator.cpp
 )
 
-if (SDL2_FOUND)
+if (USE_PLAYER)
 list(APPEND SRC
     sdl2display.h
     sdl2display.cpp
@@ -56,22 +53,6 @@ target_link_libraries(${PROJECT_NAME}
         progresscpp
 )
 
-if (SDL2_FOUND)
-    target_link_libraries(${PROJECT_NAME}
-        PUBLIC
-            CLI11
-            FFmpegVideoReader
-            PlayerWriter
-            pcm_utils
-            SDL2::SDL2main SDL2::SDL2
-    )
-    target_compile_definitions(${PROJECT_NAME}
-        PUBLIC
-            -DSDL2
-    )
-else()
-    message(STATUS "SDL2 not found display pcm not supported!")
-endif()
 
 if (NOT WIN32)
     target_link_libraries(${PROJECT_NAME}

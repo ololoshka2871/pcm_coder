@@ -23,11 +23,11 @@
 #endif
 
 #include "ffmpegvideocoder.h"
-#ifdef SDL2
-#include "sdl2display.h"
-#endif
 
+#ifdef PLAYER
+#include "sdl2display.h"
 #include "Player.h"
+#endif
 
 #include "CLI/CLI.hpp"
 
@@ -45,9 +45,10 @@ struct Options {
 #ifdef _MSC_VER
   static
 #endif
-  auto newOption<std::string>(CLI::App &app, const std::string &option_name,
-                              std::string &value,
-                              const std::string &description) {
+      auto
+      newOption<std::string>(CLI::App &app, const std::string &option_name,
+                             std::string &value,
+                             const std::string &description) {
     return app
         .add_option(option_name, value,
                     description + " [Default: " + value + "]")
@@ -65,8 +66,8 @@ struct Options {
 #ifdef _MSC_VER
   static
 #endif
-  std::string generate_default_str<bool>(std::string &default_str,
-                                         const bool &val) {
+      std::string
+      generate_default_str<bool>(std::string &default_str, const bool &val) {
     return default_str.empty() ? " [Default: " + Options::printBool(val) + "]"
                                : " [Default: " + default_str + "]";
   }
@@ -136,7 +137,11 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
       ->check(CLI::ExistingFile);
   auto output =
       app.add_option("outputfile", options.OutputFile, "Result video file.")
-          ->expected(1);
+          ->expected(1)
+#ifndef PLAYER
+          ->required()
+#endif
+      ;
 
   auto codec_opt =
       Options::newOption(app, "-c,--video-codec", options.codec,
@@ -146,7 +151,8 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
   Options::newFlag(app, "--pal,!--ntsc", options.pal,
                    "Output video format: PAL/NTSC.", options.formatsStr());
   Options::newFlag(app, "--14,!--16", options.width14,
-                   "Output bit widtht: 14/16 bit. 16BIT NOT WORKING YET", options.bitWidthsStr());
+                   "Output bit widtht: 14/16 bit. 16BIT NOT WORKING YET",
+                   options.bitWidthsStr());
   Options::newFlag(app, "--with-dither,!--no-dither,!--ND", options.use_dither,
                    "Use dither when convering 16 bit -> 14 bit.");
   Options::newFlag(app, "--with-parity,!--no-parity,!--NP", options.parity,
@@ -154,7 +160,8 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
   Options::newFlag(app, "--with-q,!--no-q,!--NQ", options.Q, "Generate Q.");
   Options::newFlag(app, "--copy-protection,!--no-copy-protection,--CP",
                    options.copyProtection, "Set copy protection bit.");
-  Options::newFlag(app, "-C,--Cut", options.Cut, "Cut-out invisavle strings. 16BIT NOT WORKING YET");
+  Options::newFlag(app, "-C,--Cut", options.Cut,
+                   "Cut-out invisavle strings. 16BIT NOT WORKING YET");
   Options::newOption(app, "-b,--video-bitrate", options.bitrate,
                      "Set video bitrate (if not Uncompresed).")
       ->needs(output)
@@ -164,9 +171,14 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
 static void configure_ctrlc_listener() {
 #ifdef _MSC_VER
   // https://stackoverflow.com/questions/18291284/handle-ctrlc-on-win32
-  if (!SetConsoleCtrlHandler([](DWORD) {terminate_flag = true; return TRUE; }, TRUE)) {
-      std::cout << "ERROR: Could not set control handler" << std::endl;
-      exit(1);
+  if (!SetConsoleCtrlHandler(
+          [](DWORD) {
+            terminate_flag = true;
+            return TRUE;
+          },
+          TRUE)) {
+    std::cout << "ERROR: Could not set control handler" << std::endl;
+    exit(1);
   }
 #else
   struct sigaction sigIntHandler;
@@ -188,7 +200,7 @@ static auto createConsumerThread(const Options &options, uint32_t queueSize) {
   auto pixeldublicator =
       std::make_unique<PixelDublicator>(720 / PCMFrame::PIXEL_WIDTH);
 
-#ifdef SDL2
+#ifdef PLAYER
   if (options.Play()) {
     pixeldublicator->setConsumer(std::make_unique<SDL2Display>(
         []() { terminate_flag = true; }, queueSize));
@@ -289,11 +301,13 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  std::cout << "Start endcoding..." << std::endl;
+  std::cout << "Start " << (options.Play() ? "playing..." : "endcoding...")
+            << std::endl;
 
-  auto progressBar = initProgressBar(
-      std::chrono::duration_cast<std::chrono::microseconds>(audioReader.duration())
-          .count());
+  auto progressBar =
+      initProgressBar(std::chrono::duration_cast<std::chrono::microseconds>(
+                          audioReader.duration())
+                          .count());
 
   {
     std::unique_ptr<Player> player;
@@ -312,7 +326,8 @@ int main(int argc, char *argv[]) {
       lineGenerator.input(res);
 
       auto ts_s =
-          std::chrono::duration_cast<std::chrono::microseconds>(timestamp).count();
+          std::chrono::duration_cast<std::chrono::microseconds>(timestamp)
+              .count();
 
       // --- Грязный хак ---
       *reinterpret_cast<unsigned int *>(&progressBar) = ts_s;

@@ -95,7 +95,7 @@ else (PORTAUDIO_LIBRARIES AND PORTAUDIO_INCLUDE_DIRS)
     else (PORTAUDIO_FOUND)
       if (Portaudio_FIND_REQUIRED)
         message(FATAL_ERROR "Could not find Portaudio")
-      endif (Portaudio_FIND_REQUIRED)
+      endif (PORTAUDIO_FIND_REQUIRED)
     endif (PORTAUDIO_FOUND)
   endif (PORTAUDIO2_FOUND)
 
