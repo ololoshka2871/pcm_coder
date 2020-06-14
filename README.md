@@ -60,3 +60,85 @@ make
 
 ### Windows
 
+Необходимые зависимости:
+
+* [ffmpeg](http://ffmpeg.org/)
+* [cmake](https://cmake.org/)
+* [Build Tools for Visual Studio 2019](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16)
+
+
+* Распаковать [библиотеки](https://ffmpeg.zeranoe.com/builds/win64/shared/ffmpeg-4.2.3-win64-shared.zip) и 
+[хедеры](https://ffmpeg.zeranoe.com/builds/win64/dev/ffmpeg-4.2.3-win64-dev.zip) FFmpeg'а куда угодно, например в каталог ffmpeg
+
+```
+ffmpeg
+├───bin
+├───doc
+├───include
+│   ├───libavcodec
+│   ├───libavdevice
+│   ├───libavfilter
+│   ├───libavformat
+│   ├───libavutil
+│   ├───libpostproc
+│   ├───libswresample
+│   └───libswscale
+├───lib
+└───presets
+```
+
+* Конфигурирование
+
+-A платформа
+- x64 - 64-битный вариант
+- Win32 - 32-хбитный
+
+```
+cmake .. -GCMAKE_BUILD_TYPE=Release -A x64 -DLIBAVCODEC_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBAVDEVICE_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBAVFORMAT_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBAVUTIL_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBSWRESAMPLE_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBSWSCALE_INCLUDE_DIR=<путь к ffmpeg>/include
+```
+
+Или то же ссамое через cmake-gui
+
+* Сборка
+
+```
+cmake --build . --config Release
+```
+
+* Исполняемый файл находится в подкаталоге src/Release
+Для запуска потребуется скопировать библотеки ffmpeg 
+* avcodec-58.dll
+* avdevice-58.dll
+* avfilter-7.dll
+* avformat-58.dll
+* avutil-56.dll
+* postproc-55.dll
+* swresample-3.dll
+* swscale-5.dll
+
+и SDL2.dll (появится в каталоге `libs\dependencies\install\bin`)
+
+В один каталог c один каталог с исполняемым файлом
+
+
+# Использование
+
+## Воспроизведение
+
+```
+pcm_coder <путь к медиа-файлу>
+```
+
+## Кодирование
+
+```
+pcm_coder -c <название кодека ffmpeg> -b <битрейт видео> {--pal|--ntsc} <путь к медиа-файлу> <выходной фал.avi>
+```
+
+Остальные опции кодирования смотри в справке `--help`
+
+
+# TODO
+
+* [_] Поддержка 16 бит (--16)
+* [_] Поддержка обрезки (--Cut)
