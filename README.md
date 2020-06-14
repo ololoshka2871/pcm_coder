@@ -46,7 +46,7 @@ mkdir build && cd build
 * Конфигурирование
 
 ```
-cmake .. -GCMAKE_BUILD_TYPE=Release
+cmake .. -DCMAKE_BUILD_TYPE=Release
 ```
 
 * Сборка
@@ -66,6 +66,7 @@ make
 * [cmake](https://cmake.org/)
 * [Build Tools for Visual Studio 2019](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16) или
 	Visual Studio 2019
+* [Visual C Runtime 2019](https://aka.ms/vs/16/release/vc_redist.x64.exe) Только для клиентов
 
 
 * Распаковать [библиотеки](https://ffmpeg.zeranoe.com/builds/win64/shared/ffmpeg-4.2.3-win64-shared.zip) и 
@@ -95,7 +96,7 @@ ffmpeg
 - Win32 - 32 битный
 
 ```
-cmake .. -GCMAKE_BUILD_TYPE=Release -A x64 -DLIBAVCODEC_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBAVDEVICE_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBAVFORMAT_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBAVUTIL_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBSWRESAMPLE_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBSWSCALE_INCLUDE_DIR=<путь к ffmpeg>/include
+cmake .. -DCMAKE_BUILD_TYPE=Release -A x64 -DLIBAVCODEC_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBAVDEVICE_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBAVFORMAT_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBAVUTIL_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBSWRESAMPLE_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBSWSCALE_INCLUDE_DIR=<путь к ffmpeg>/include
 ```
 
 Или то же самое через cmake-gui
