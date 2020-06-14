@@ -23,8 +23,8 @@ struct PCMFrame : public IFrame {
   static constexpr auto CRC1_COLUMN_NUMBER = DATA_COLUMNS;
   static constexpr auto TOTAL_LINE_ELEMENTS = CRC1_COLUMN_NUMBER + 1;
 
-  static constexpr auto PAL_HEIGTH = 588;
-  static constexpr auto NTSC_HEIGTH = 490;
+  static constexpr auto PAL_HEIGTH = 590;
+  static constexpr auto NTSC_HEIGTH = 492;
 
   static constexpr auto HEADER_SIZE_LINES = 2;
 
