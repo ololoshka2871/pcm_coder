@@ -54,7 +54,6 @@ target_link_libraries(${PROJECT_NAME}
         PlayerWriter
         pcm_utils
         progresscpp
-        #stdc++
 )
 
 if (SDL2_FOUND)
@@ -65,7 +64,6 @@ if (SDL2_FOUND)
             PlayerWriter
             pcm_utils
             SDL2::SDL2main SDL2::SDL2
-            #stdc++
     )
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC
@@ -73,6 +71,13 @@ if (SDL2_FOUND)
     )
 else()
     message(STATUS "SDL2 not found display pcm not supported!")
+endif()
+
+if (NOT WIN32)
+    target_link_libraries(${PROJECT_NAME}
+        PUBLIC
+            stdc++
+    )
 endif()
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD ${CPP_STD})
