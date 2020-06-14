@@ -91,8 +91,8 @@ ffmpeg
 * Конфигурирование
 
 **-A платформа**
-- x64 - 64-битный вариант
-- Win32 - 32-хбитный
+- x64 - 64 битный вариант
+- Win32 - 32 битный
 
 ```
 cmake .. -GCMAKE_BUILD_TYPE=Release -A x64 -DLIBAVCODEC_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBAVDEVICE_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBAVFORMAT_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBAVUTIL_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBSWRESAMPLE_INCLUDE_DIR=<путь к ffmpeg>/include -DLIBSWSCALE_INCLUDE_DIR=<путь к ffmpeg>/include
@@ -108,8 +108,9 @@ cmake --build . --config Release
 
 Исполняемый файл находится в подкаталоге src/Release
 
-* Для запуска потребуется скопировать библотеки ffmpeg 
+Для запуска потребуется **скопировать библотеки**
 
+ffmpeg:
 - avcodec-58.dll
 - avdevice-58.dll
 - avfilter-7.dll
@@ -118,9 +119,11 @@ cmake --build . --config Release
 - postproc-55.dll
 - swresample-3.dll
 - swscale-5.dll
-- SDL2.dll (появится в каталоге `libs\dependencies\install\bin`)
 
-В один каталог c один каталог с исполняемым файлом
+SDL2:
+- SDL2.dll (появится при сборке в каталоге `libs\dependencies\install\bin`)
+
+В один каталог с исполняемым файлом
 
 
 # Использование
@@ -128,13 +131,13 @@ cmake --build . --config Release
 ## Воспроизведение
 
 ```
-pcm_coder <путь к медиа-файлу>
+pcm_coder <входной файл>
 ```
 
 ## Кодирование
 
 ```
-pcm_coder -c <название кодека ffmpeg> -b <битрейт видео> {--pal|--ntsc} <путь к медиа-файлу> <выходной фал.avi>
+pcm_coder -c <название кодека ffmpeg> -b <битрейт видео> {--pal|--ntsc} <входной файл> <выходной фал.avi>
 ```
 
 Остальные опции кодирования смотри в справке `--help`
