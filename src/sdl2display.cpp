@@ -9,37 +9,21 @@
 
 #include "sdl2display.h"
 
-union rgb565 {
-#ifdef _MSC_VER
-#pragma pack(push, 1)
-    struct {
-        unsigned r : 5;
-        unsigned g : 6;
-        unsigned b : 5;
-    };
-#pragma pack(pop)
-#else
-  struct __attribute__((packed)) {
-    unsigned r : 5;
-    unsigned g : 6;
-    unsigned b : 5;
-  };
-#endif
-  uint16_t raw;
+using rgb565 = uint16_t;
 
-  rgb565() : raw(0) {}
-  rgb565(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b) {}
+rgb565 Initrgb565() {
+    return 0;
+}
 
-  rgb565 &operator=(const rgb565 &lr) {
-    raw = lr.raw;
-    return *this;
-  }
-
-  static rgb565 gray(uint8_t light) {
-    return rgb565((float)light * 31.0f / 255.0f, (float)light * 63.0f / 255.0f,
-                  (float)light * 31.0f / 255.0f);
-  }
-};
+rgb565 Initrgb565gray(uint8_t light) {
+    uint32_t r = (float)light * 31.0f / 255.0f;
+    r &= 0x1F;
+    uint32_t g = (float)light * 63.0f / 255.0f;
+    g &= 0x3F;
+    uint32_t b = (float)light * 31.0f / 255.0f;
+    b &= 0x1F;
+    return (r << (5 + 6)) | (g << 5) | (b);
+}
 
 struct SDL2Display::Context {
   Context(const std::function<void()> &onClose)
@@ -66,7 +50,7 @@ struct SDL2Display::Context {
 
 static void reset_texture(SDL_Texture *texture, int width, int heigth) {
 
-  rgb565 test = rgb565::gray(0);
+  rgb565 test = Initrgb565();
 
   rgb565 *pixels;
   int pitch;
@@ -189,7 +173,7 @@ void SDL2Display::renderFrame() {
           try {
             base[p] = cache.at(pixel);
           } catch (std::out_of_range) {
-            cache[pixel] = rgb565::gray(pixel);
+            cache[pixel] = Initrgb565gray(pixel);
             base[p] = cache.at(pixel);
           }
         }

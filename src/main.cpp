@@ -129,9 +129,7 @@ const char Options::uncompresed[] = "rawvideo";
 
 static bool terminate_flag = false;
 
-static Options configureArgumentParcer(CLI::App &app) {
-  Options options;
-
+static void configureArgumentParcer(CLI::App &app, Options &options) {
   app.add_option("audiofile", options.InputFile, "Audiofile to process.")
       ->expected(1)
       ->required()
@@ -161,8 +159,6 @@ static Options configureArgumentParcer(CLI::App &app) {
                      "Set video bitrate (if not Uncompresed).")
       ->needs(output)
       ->needs(codec_opt);
-
-  return options;
 }
 
 static void configure_ctrlc_listener() {
@@ -256,8 +252,10 @@ static void separator(std::ostream &os) { os << std::endl; }
 int main(int argc, char *argv[]) {
   configure_ctrlc_listener();
 
+  Options options;
+
   CLI::App app{"PCM encoder"};
-  auto options = configureArgumentParcer(app);
+  configureArgumentParcer(app, options);
   CLI11_PARSE(app, argc, argv);
   options.dump(std::cout);
 
@@ -294,7 +292,7 @@ int main(int argc, char *argv[]) {
   std::cout << "Start endcoding..." << std::endl;
 
   auto progressBar = initProgressBar(
-      std::chrono::duration_cast<std::chrono::seconds>(audioReader.duration())
+      std::chrono::duration_cast<std::chrono::microseconds>(audioReader.duration())
           .count());
 
   {
@@ -314,7 +312,7 @@ int main(int argc, char *argv[]) {
       lineGenerator.input(res);
 
       auto ts_s =
-          std::chrono::duration_cast<std::chrono::seconds>(timestamp).count();
+          std::chrono::duration_cast<std::chrono::microseconds>(timestamp).count();
 
       // --- Грязный хак ---
       *reinterpret_cast<unsigned int *>(&progressBar) = ts_s;
