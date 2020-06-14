@@ -4,7 +4,9 @@ set(CPP_STD 17)
 
 project(pcm_coder)
 
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+set(MODULES_DIR ${CMAKE_SOURCE_DIR}/cmake)
+
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${MODULES_DIR})
 
 add_subdirectory(libs)
 add_subdirectory(src)

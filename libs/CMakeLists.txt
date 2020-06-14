@@ -42,8 +42,56 @@ target_link_libraries(FFmpegVideoReader
 # PlayerWriter
 ##############
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+
+set(CMAKE_DEBUG_POSTFIX d)
+
+set(DEPENDENCY_DIR ${CMAKE_CURRENT_BINARY_DIR}/dependencies)
+
+include(get-sdl2)
+include(get-portaudio)
+
+ExternalProject_Get_Property(sdl2 install_dir)
+
+set(sdl2_install_dir ${install_dir})
+
+add_library(SDL2 STATIC IMPORTED)
+set_target_properties(SDL2 PROPERTIES IMPORTED_LOCATION_RELEASE ${sdl2_install_dir}/lib/SDL2${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_target_properties(SDL2 PROPERTIES IMPORTED_LOCATION_DEBUG ${sdl2_install_dir}/lib/SDL2d${CMAKE_STATIC_LIBRARY_SUFFIX})
+add_dependencies(SDL2 sdl2)
+
+ExternalProject_Get_Property(project_portaudio install_dir)
+
+set(portaudio_install_dir ${install_dir})
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+	set(portaudio_libName portaudio_static${CMAKE_STATIC_LIBRARY_SUFFIX})
+else()
+	set(portaudio_libName portaudio_static_x64${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
+
+add_library(Portaudio STATIC IMPORTED)
+set_target_properties(Portaudio PROPERTIES IMPORTED_LOCATION ${portaudio_install_dir}/lib/${portaudio_libName})
+add_dependencies(Portaudio project_portaudio)
+
+set(ADD_LIBS SDL2 Portaudio)
+set(ADD_INCLUDES_PATHS 
+	${sdl2_install_dir}/include
+	${portaudio_install_dir}/include
+)
+
+set(SDL2_FOUND TRUE)
+set(PORTAUDIO_FOUND TRUE)
+
+else()
+
 find_package(SDL2)
 find_package(PORTAUDIO)
+
+set(ADD_LIBS SDL2::SDL2main SDL2::SDL2 ${PORTAUDIO_LIBRARIES})
+set(ADD_INCLUDES_PATHS ${PORTAUDIO_INCLUDE_DIRS})
+
+endif()
 
 if (SDL2_FOUND AND PORTAUDIO_FOUND)
     set(PlayerWriter_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pcm_utils/PlayerWriter)
@@ -56,15 +104,14 @@ if (SDL2_FOUND AND PORTAUDIO_FOUND)
 
     target_include_directories(PlayerWriter
         PUBLIC
-            ${PORTAUDIO_INCLUDE_DIRS}
+            ${ADD_INCLUDES_PATHS}
             ${PlayerWriter_DIR}
     )
 
     target_link_libraries(PlayerWriter
         PUBLIC
             ${FFMPEG_LIBRARIES}
-            ${PORTAUDIO_LIBRARIES}
-            SDL2::SDL2main SDL2::SDL2
+            ${ADD_LIBS}
     )
     target_compile_definitions(PlayerWriter PUBLIC -DPLAYER)
     set(USE_PLAYER TRUE PARENT_SCOPE)
