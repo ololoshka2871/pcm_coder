@@ -64,7 +64,8 @@ make
 
 * [ffmpeg](http://ffmpeg.org/)
 * [cmake](https://cmake.org/)
-* [Build Tools for Visual Studio 2019](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16)
+* [Build Tools for Visual Studio 2019](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16) или
+	Visual Studio 2019
 
 
 * Распаковать [библиотеки](https://ffmpeg.zeranoe.com/builds/win64/shared/ffmpeg-4.2.3-win64-shared.zip) и 
@@ -106,17 +107,18 @@ cmake --build . --config Release
 ```
 
 * Исполняемый файл находится в подкаталоге src/Release
-Для запуска потребуется скопировать библотеки ffmpeg 
-* avcodec-58.dll
-* avdevice-58.dll
-* avfilter-7.dll
-* avformat-58.dll
-* avutil-56.dll
-* postproc-55.dll
-* swresample-3.dll
-* swscale-5.dll
 
-и SDL2.dll (появится в каталоге `libs\dependencies\install\bin`)
+Для запуска потребуется скопировать библотеки ffmpeg 
+
+- avcodec-58.dll
+- avdevice-58.dll
+- avfilter-7.dll
+- avformat-58.dll
+- avutil-56.dll
+- postproc-55.dll
+- swresample-3.dll
+- swscale-5.dll
+- SDL2.dll (появится в каталоге `libs\dependencies\install\bin`)
 
 В один каталог c один каталог с исполняемым файлом
 
