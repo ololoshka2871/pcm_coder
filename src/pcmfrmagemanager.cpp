@@ -89,8 +89,8 @@ void PCMFrmageManager::generateCRC(std::unique_ptr<PCMFrame> &frame) {
   }
 }
 
-PCMLine PCMFrmageManager::buildHeaderLine(uint16_t copy_protection,
-                                          uint16_t have_P, uint16_t have_Q) {
+PCMLine PCMFrmageManager::buildHeaderLine(bool copy_protection, bool have_P,
+                                          bool have_Q) {
   PCMLine res;
 
   res[0] = 0x3333;
@@ -98,7 +98,14 @@ PCMLine PCMFrmageManager::buildHeaderLine(uint16_t copy_protection,
   res[2] = 0x3333;
   res[3] = 0xCCCC;
 
-  res[7] = (copy_protection << 0) | (have_P << 1) | (have_Q << 2) | (1 << 3);
+  uint16_t _copy_protection = copy_protection;
+  uint16_t _have_P = !have_P;
+  uint16_t _have_Q = !have_Q;
+
+  res[7] = (1 << 0) |               // Pre-emphasis [false inverted]
+           (_have_Q << 1) |         // Q [inverted]
+           (_have_P << 2) |         // P [inverted]
+           (_copy_protection << 3); // Copy-protect
 
   *res.pCRC() = res.generateCRC();
 

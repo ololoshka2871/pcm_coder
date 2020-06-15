@@ -52,8 +52,8 @@ private:
 
   void generateCRC(std::unique_ptr<PCMFrame> &frame);
 
-  static PCMLine buildHeaderLine(uint16_t copy_protection, uint16_t have_P,
-                                 uint16_t have_Q);
+  static PCMLine buildHeaderLine(bool copy_protection, bool have_P,
+                                 bool have_Q);
 };
 
 #endif // PCMFRMAGEMANAGER_H

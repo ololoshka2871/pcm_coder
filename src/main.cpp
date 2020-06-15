@@ -25,8 +25,8 @@
 #include "ffmpegvideocoder.h"
 
 #ifdef PLAYER
-#include "sdl2display.h"
 #include "Player.h"
+#include "sdl2display.h"
 #endif
 
 #include "CLI/CLI.hpp"
@@ -90,7 +90,7 @@ struct Options {
   bool use_dither = true;
   bool parity = true;
   bool Q = true;
-  bool copyProtection = true;
+  bool copyProtection = false;
   bool Cut = false;
 
   uint32_t bitrate = 15000;
@@ -158,7 +158,7 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
   Options::newFlag(app, "--with-parity,!--no-parity,!--NP", options.parity,
                    "Generate parity.");
   Options::newFlag(app, "--with-q,!--no-q,!--NQ", options.Q, "Generate Q.");
-  Options::newFlag(app, "--copy-protection,!--no-copy-protection,--CP",
+  Options::newFlag(app, "--copy-protection,--CP,!--no-copy-protection",
                    options.copyProtection, "Set copy protection bit.");
   Options::newFlag(app, "-C,--Cut", options.Cut,
                    "Cut-out invisavle strings. 16BIT NOT WORKING YET");
