@@ -106,14 +106,14 @@ struct Options {
   void dump(std::ostream &os) const {
     using namespace std;
 
-    os << "Coder options:" << endl << "\tInutput file: " << InputFile << endl;
+    os << "Coder options:" << endl << "\tInput file: " << InputFile << endl;
     if (!Play()) {
       os << "\tOutput File: " << OutputFile << endl;
     }
     os << "\tCodec: " << codec << endl
        << "\tFormat: " << formatsStr() << endl
        << "\tBit width: " << bitWidthsStr() << endl
-       << "\tUse diter: " << printBool(width14 ? use_dither : false) << endl
+       << "\tUse dither: " << printBool(width14 ? use_dither : false) << endl
        << "\tGenerate parity: " << printBool(parity) << endl
        << "\tAdd copy-protection bit: " << printBool(copyProtection) << endl;
     if (width14) {
@@ -163,7 +163,7 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
   Options::newFlag(app, "-C,--Cut", options.Cut,
                    "Cut-out invisavle strings. 16BIT NOT WORKING YET");
   Options::newOption(app, "-b,--video-bitrate", options.bitrate,
-                     "Set video bitrate (if not Uncompresed).")
+                     "Set video bitrate (if not uncompressed).")
       ->needs(output)
       ->needs(codec_opt);
 }
@@ -301,7 +301,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  std::cout << "Start " << (options.Play() ? "playing..." : "endcoding...")
+  std::cout << "Start " << (options.Play() ? "playing..." : "encoding...")
             << std::endl;
 
   auto progressBar =
