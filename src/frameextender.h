@@ -3,8 +3,9 @@
 
 #include "ipcmframeprocessingpolicy.h"
 
-struct PixelDublicator : public IPCMFrameProcessingPolicy {
-  PixelDublicator(uint8_t factor = 1);
+struct FrameExtender : public IPCMFrameProcessingPolicy {
+  FrameExtender(bool PAL = true, int32_t cut_top = 0, int32_t cut_bot = 0,
+                uint8_t factor = 1);
 
   void Init(size_t width, size_t heigth) override;
   void operator()(std::unique_ptr<IFrame> &frame) override;
@@ -17,7 +18,13 @@ struct PixelDublicator : public IPCMFrameProcessingPolicy {
 private:
   std::unique_ptr<IPCMFrameProcessingPolicy> consumer;
 
+  int32_t cut_top, cut_bot;
+
+  int32_t src_heigth;
+
   uint8_t factor;
+
+  bool PAL;
 };
 
 #endif // PIXELDUBLICATOR_H

@@ -11,8 +11,7 @@ struct FFmpegVideoCoder : public IPCMFrameProcessingPolicy {
   static constexpr auto PIXEL_WIDTH = 720;
 
   FFmpegVideoCoder(const std::string &filename, const std::string &codec,
-                   const uint32_t bitrate = -1, bool PAL = true,
-                   bool cut = false);
+                   const uint32_t bitrate = -1, bool PAL = true);
   ~FFmpegVideoCoder();
 
   void Init(size_t width, size_t heigth) override;
@@ -28,7 +27,6 @@ private:
   std::string codec;
   uint32_t bitrate;
   bool PAL;
-  bool cut;
 };
 
 #endif // FFMPEGVIDEOCODER_H

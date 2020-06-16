@@ -60,4 +60,6 @@ const PCMLine *PCMFrame::getLine(size_t line_n) const {
   return &data.at(line_n);
 }
 
-size_t PCMFrame::heigth() const { return IFrame::heigth() - HEADER_SIZE_LINES; }
+int32_t PCMFrame::heigth() const {
+  return IFrame::heigth() - HEADER_SIZE_LINES;
+}

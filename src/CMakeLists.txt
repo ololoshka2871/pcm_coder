@@ -30,8 +30,8 @@ set(SRC
     ipcmframeprocessingpolicy.h
     iframe.h
 
-    pixeldublicator.h
-    pixeldublicator.cpp
+    frameextender.h
+    frameextender.cpp
 )
 
 if (USE_PLAYER)

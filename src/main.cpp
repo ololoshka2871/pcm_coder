@@ -9,9 +9,9 @@
 #include "samplegenerator.h"
 
 #include "PCMFinalStage.h"
+#include "frameextender.h"
 #include "pcmfrmagemanager.h"
 #include "pcmlinegenerator.h"
-#include "pixeldublicator.h"
 
 #include "progresscpp/ProgressBar.hpp"
 
@@ -91,7 +91,9 @@ struct Options {
   bool parity = true;
   bool Q = true;
   bool copyProtection = false;
-  bool Cut = false;
+
+  uint32_t crop_top = 0;
+  uint32_t crop_bot = 0;
 
   uint32_t bitrate = 15000;
   std::string InputFile;
@@ -119,7 +121,9 @@ struct Options {
     if (width14) {
       os << "\tGenerate Q: " << printBool(Q) << endl;
     }
-    os << "\tCut video: " << printBool(Cut) << endl;
+    if (crop_top || crop_bot) {
+      os << "\tCrop video top=" << crop_top << ", bot=" << crop_bot << endl;
+    }
     if (codec != uncompresed) {
       os << "\tVideo bitrate: " << bitrate << endl;
     }
@@ -160,12 +164,14 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
   Options::newFlag(app, "--with-q,!--no-q,!--NQ", options.Q, "Generate Q.");
   Options::newFlag(app, "--copy-protection,--CP,!--no-copy-protection",
                    options.copyProtection, "Set copy protection bit.");
-  Options::newFlag(app, "-C,--Cut", options.Cut,
-                   "Cut-out invisavle strings. 16BIT NOT WORKING YET");
   Options::newOption(app, "-b,--video-bitrate", options.bitrate,
                      "Set video bitrate (if not uncompressed).")
       ->needs(output)
       ->needs(codec_opt);
+  Options::newOption(app, "--crop-top", options.crop_top,
+                     "Crop N lines from TOP of frame.");
+  Options::newOption(app, "--crop-bot", options.crop_bot,
+                     "Crop N lines from BOTTOM of frame.");
 }
 
 static void configure_ctrlc_listener() {
@@ -197,8 +203,9 @@ static auto createConsumerThread(const Options &options, uint32_t queueSize) {
   auto consumer = std::make_unique<PCMFinalStage>(
       Width, PCMFrmageManager::getHeigth(options.pal), queueSize);
 
-  auto pixeldublicator =
-      std::make_unique<PixelDublicator>(720 / PCMFrame::PIXEL_WIDTH);
+  auto pixeldublicator = std::make_unique<FrameExtender>(
+      options.pal, options.crop_top, options.crop_bot,
+      FFmpegVideoCoder::PIXEL_WIDTH / PCMFrame::PIXEL_WIDTH);
 
 #ifdef PLAYER
   if (options.Play()) {
@@ -208,8 +215,7 @@ static auto createConsumerThread(const Options &options, uint32_t queueSize) {
 #endif
   {
     pixeldublicator->setConsumer(std::make_unique<FFmpegVideoCoder>(
-        options.OutputFile, options.codec, options.bitrate, options.pal,
-        options.Cut));
+        options.OutputFile, options.codec, options.bitrate, options.pal));
   }
 
   consumer->setPolicy(std::move(pixeldublicator));
@@ -251,7 +257,7 @@ static progresscpp::ProgressBar initProgressBar(uint32_t limit) {
   cols = ts.ws_col;
 #endif /* TIOCGSIZE */
 
-  if (cols == 0) {
+  if (cols == 0 || cols > 200) {
     cols = 80;
   }
 #endif
@@ -304,10 +310,10 @@ int main(int argc, char *argv[]) {
   std::cout << "Start " << (options.Play() ? "playing..." : "encoding...")
             << std::endl;
 
-  auto progressBar =
-      initProgressBar(std::chrono::duration_cast<std::chrono::microseconds>(
-                          audioReader.duration())
-                          .count());
+  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                      audioReader.duration())
+                      .count();
+  auto progressBar = initProgressBar(duration);
 
   {
     std::unique_ptr<Player> player;
@@ -315,6 +321,10 @@ int main(int argc, char *argv[]) {
       player = std::make_unique<Player>(0, queuesSize,
                                         AudioReader::output_sample_rate);
     }
+
+    // --- Грязный хак ---
+    unsigned int &progress_value =
+        *reinterpret_cast<unsigned int *>(&progressBar);
 
     while (audioReader.getNextAudioData(audio_data, frames_read, timestamp)) {
 #if 0
@@ -329,8 +339,7 @@ int main(int argc, char *argv[]) {
           std::chrono::duration_cast<std::chrono::microseconds>(timestamp)
               .count();
 
-      // --- Грязный хак ---
-      *reinterpret_cast<unsigned int *>(&progressBar) = ts_s;
+      progress_value = ts_s;
 
       progressBar.display();
 
@@ -344,6 +353,7 @@ int main(int argc, char *argv[]) {
         goto done;
       }
     }
+    progress_value = duration;
     progressBar.done();
   }
 

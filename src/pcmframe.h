@@ -36,7 +36,7 @@ struct PCMFrame : public IFrame {
   PCMLine *getLine(size_t line_n);
   const PCMLine *getLine(size_t line_n) const;
 
-  size_t heigth() const override;
+  int32_t heigth() const override;
 
 private:
   std::vector<PCMLine> data;
