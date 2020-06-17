@@ -13,7 +13,7 @@ SampleStairsItherator SampleStairsItherator::wrap(PCMFrame &newframe) {
       &newframe,
       (row < 0) ? int32_t(newframe.heigth() + row) // wrap up
                 : int32_t(row - frame->heigth()),  // wrap down
-      column, is14bit};
+      column};
 }
 
 uint16_t &SampleStairsItherator::operator*() {

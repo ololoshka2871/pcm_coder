@@ -29,11 +29,25 @@ uint16_t PCMLine::generateQ() const {
 }
 
 uint16_t PCMLine::generate16BitExtention() const {
-  uint16_t res = 0;
+  static constexpr uint16_t bit01 = (1 << 1) | (1 << 0);
 
-  // generate 16 bit
+  uint16_t res = 0;
+  uint16_t parity_acumulator = 0;
+
+  for (auto i = 0; i < TotalChanelSamples; ++i) {
+    uint16_t v = data[i] & bit01;
+    res |= v << (12 - i * 2);
+    parity_acumulator ^= v;
+  }
+  res |= parity_acumulator;
 
   return res;
+}
+
+void PCMLine::shiftMainData() {
+  for (auto i = 0; i < TotalChanelSamples; ++i) {
+    data[i] >>= 2;
+  }
 }
 
 uint16_t PCMLine::generateCRC() const {

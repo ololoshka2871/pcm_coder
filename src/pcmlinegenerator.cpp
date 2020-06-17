@@ -29,7 +29,8 @@ void PCMLineGenerator::input(
         *itl = line.generateP();
       }
       ++itl;
-      if (generateQ && mode14Bit) {
+      if (generateQ && mode14Bit) // skip generate Q if 16 bit mode
+      {
         *itl = line.generateQ();
       }
 

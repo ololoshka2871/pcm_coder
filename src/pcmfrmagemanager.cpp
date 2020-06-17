@@ -14,7 +14,7 @@ PCMFrmageManager::PCMFrmageManager(
       inputQueue{quieueSize}, outQeue{outQeue},
       currentFrame{std::make_unique<PCMFrame>(heigth, headerlune)},
       nextFrame{std::make_unique<PCMFrame>(heigth, headerlune)},
-      mainItherator{*currentFrame, is14bit} {}
+      mainItherator{*currentFrame}, is14Bit{is14bit} {}
 
 PCMFrmageManager::~PCMFrmageManager() {
   if (pThread != nullptr) {
@@ -59,9 +59,6 @@ void PCMFrmageManager::thread_func() {
 
       if (mainItherator.lastItem()) {
         process_redy_frame();
-#if 0
-        std::cout << "Generated " << frame_counter++ << " frames" << std::endl;
-#endif
       }
 
       ++mainItherator;
@@ -86,6 +83,12 @@ void PCMFrmageManager::process_redy_frame() {
 void PCMFrmageManager::generateCRC(std::unique_ptr<PCMFrame> &frame) {
   for (auto line = 0; line < frame->heigth(); ++line) {
     auto pl = frame->getLine(line);
+
+    if (!is14Bit) {
+      *pl->pQ() = pl->generate16BitExtention();
+      pl->shiftMainData();
+    }
+
     *pl->pCRC() = pl->generateCRC();
   }
 }

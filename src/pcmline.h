@@ -37,11 +37,15 @@ struct PCMLine {
 
   uint16_t *iterator() { return std::begin(data); }
   uint16_t *pCRC() { return &data[TotalDataPreLine]; }
+  uint16_t *pQ() { return &data[Q_offset]; }
   uint16_t *end() { return std::end(data); }
 
   uint16_t generateP() const;
   uint16_t generateQ() const;
   uint16_t generate16BitExtention() const;
+
+  // only for 16 bit mode. Set main samples 14 bit, not 16
+  void shiftMainData();
 
   uint16_t generateCRC() const;
 

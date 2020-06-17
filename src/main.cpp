@@ -110,18 +110,18 @@ struct Options {
   void dump(std::ostream &os) const {
     using namespace std;
 
-    os << "Coder options:" << endl << "\tInput file: " << InputFile << endl;
+    os << "Encoder options:" << endl << "\tInput file: " << InputFile << endl;
     if (!Play()) {
-      os << "\tOutput File: " << OutputFile << endl;
+      os << "\tOutput File: " << OutputFile << endl
+         << "\tCodec: " << codec << endl;
     }
-    os << "\tCodec: " << codec << endl
-       << "\tFormat: " << formatsStr() << endl
+    os << "\tFormat: " << formatsStr() << endl
        << "\tBit width: " << bitWidthsStr() << endl
-       << "\tUse dither: " << printBool(width14 ? use_dither : false) << endl
        << "\tGenerate parity: " << printBool(parity) << endl
        << "\tAdd copy-protection bit: " << printBool(copyProtection) << endl;
     if (width14) {
-      os << "\tGenerate Q: " << printBool(generateQ()) << endl;
+      os << "\tGenerate Q: " << printBool(generateQ()) << endl
+         << "\tUse dither: " << printBool(width14 ? use_dither : false) << endl;
     }
     if (crop_top || crop_bot) {
       os << "\tCrop video top=" << crop_top << ", bot=" << crop_bot << endl;

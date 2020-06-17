@@ -45,6 +45,8 @@ private:
 
   SampleStairsItherator mainItherator;
 
+  bool is14Bit;
+
   void thread_func();
 
   void swapBuffers() { std::swap(currentFrame, nextFrame); }
