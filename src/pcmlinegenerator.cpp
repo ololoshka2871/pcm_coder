@@ -23,14 +23,13 @@ void PCMLineGenerator::input(
 
   overflow.assign(end, samples.end()); // replace overflow
 
-  int i = 0, j = 0, k = 0;
   for (auto it = start; it != end; ++it) { // it - итератор пары
     if (itl == itl_data_end) {
       if (generateP) {
         *itl = line.generateP();
       }
       ++itl;
-      if (generateQ) {
+      if (generateQ && mode14Bit) {
         *itl = line.generateQ();
       }
 

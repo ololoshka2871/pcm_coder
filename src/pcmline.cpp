@@ -28,6 +28,14 @@ uint16_t PCMLine::generateQ() const {
   return QfromBinArray(Qarray);
 }
 
+uint16_t PCMLine::generate16BitExtention() const {
+  uint16_t res = 0;
+
+  // generate 16 bit
+
+  return res;
+}
+
 uint16_t PCMLine::generateCRC() const {
   std::array<uint8_t, 14> databytes;
 

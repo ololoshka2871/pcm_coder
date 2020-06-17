@@ -41,6 +41,7 @@ struct PCMLine {
 
   uint16_t generateP() const;
   uint16_t generateQ() const;
+  uint16_t generate16BitExtention() const;
 
   uint16_t generateCRC() const;
 

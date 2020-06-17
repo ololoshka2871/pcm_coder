@@ -19,8 +19,9 @@ struct PCMFrmageManager {
   // записывает данные в PCMFrame
   // когда кадр полностью построен кладет его в очередь на энкодинг
 
-  PCMFrmageManager(bool generate_P, bool generate_Q, bool copy_protection,
-                   bool isPal, LockingQueue<std::unique_ptr<IFrame>> &outQeue,
+  PCMFrmageManager(bool is14bit, bool generate_P, bool generate_Q,
+                   bool copy_protection, bool isPal,
+                   LockingQueue<std::unique_ptr<IFrame>> &outQeue,
                    uint32_t quieueSize = 1);
   ~PCMFrmageManager();
 

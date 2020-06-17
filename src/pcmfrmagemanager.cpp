@@ -6,14 +6,15 @@
 #include "pcmfrmagemanager.h"
 
 PCMFrmageManager::PCMFrmageManager(
-    bool generate_P, bool generate_Q, bool copy_protection, bool isPal,
-    LockingQueue<std::unique_ptr<IFrame>> &outQeue, uint32_t quieueSize)
+    bool is14bit, bool generate_P, bool generate_Q, bool copy_protection,
+    bool isPal, LockingQueue<std::unique_ptr<IFrame>> &outQeue,
+    uint32_t quieueSize)
     : heigth{getHeigth(isPal)}, headerlune{buildHeaderLine(
                                     copy_protection, generate_P, generate_Q)},
       inputQueue{quieueSize}, outQeue{outQeue},
       currentFrame{std::make_unique<PCMFrame>(heigth, headerlune)},
       nextFrame{std::make_unique<PCMFrame>(heigth, headerlune)},
-      mainItherator{*currentFrame} {}
+      mainItherator{*currentFrame, is14bit} {}
 
 PCMFrmageManager::~PCMFrmageManager() {
   if (pThread != nullptr) {

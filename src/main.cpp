@@ -89,7 +89,7 @@ struct Options {
   bool width14 = true;
   bool use_dither = true;
   bool parity = true;
-  bool Q = true;
+  bool m_Q = true;
   bool copyProtection = false;
 
   uint32_t crop_top = 0;
@@ -102,6 +102,8 @@ struct Options {
   std::string formatsStr() const { return pal ? "PAL" : "NTSC"; }
   std::string bitWidthsStr() const { return width14 ? "14 bit" : "16 bit"; }
   static std::string printBool(bool v) { return v ? "YES" : "NO"; }
+
+  bool generateQ() const { return m_Q & width14; }
 
   bool Play() const { return OutputFile.empty(); }
 
@@ -119,7 +121,7 @@ struct Options {
        << "\tGenerate parity: " << printBool(parity) << endl
        << "\tAdd copy-protection bit: " << printBool(copyProtection) << endl;
     if (width14) {
-      os << "\tGenerate Q: " << printBool(Q) << endl;
+      os << "\tGenerate Q: " << printBool(generateQ()) << endl;
     }
     if (crop_top || crop_bot) {
       os << "\tCrop video top=" << crop_top << ", bot=" << crop_bot << endl;
@@ -161,7 +163,7 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
                    "Use dither when convering 16 bit -> 14 bit.");
   Options::newFlag(app, "--with-parity,!--no-parity,!--NP", options.parity,
                    "Generate parity.");
-  Options::newFlag(app, "--with-q,!--no-q,!--NQ", options.Q, "Generate Q.");
+  Options::newFlag(app, "--with-q,!--no-q,!--NQ", options.m_Q, "Generate Q.");
   Options::newFlag(app, "--copy-protection,--CP,!--no-copy-protection",
                    options.copyProtection, "Set copy protection bit.");
   Options::newOption(app, "-b,--video-bitrate", options.bitrate,
@@ -229,8 +231,8 @@ static auto createLineManager(const Options &options,
                               LockingQueue<std::unique_ptr<IFrame>> &outQueue,
                               uint32_t quieueSize) {
   auto manager = std::make_unique<PCMFrmageManager>(
-      options.parity, options.Q, options.copyProtection, options.pal, outQueue,
-      quieueSize);
+      options.width14, options.parity, options.generateQ(),
+      options.copyProtection, options.pal, outQueue, quieueSize);
 
   manager->start();
 
@@ -296,7 +298,7 @@ int main(int argc, char *argv[]) {
   PCMLineGenerator lineGenerator{manager->getInputQueue()};
   lineGenerator.set14BitMode(options.width14)
       .setGenerateP(options.parity)
-      .setGenerateQ(options.Q);
+      .setGenerateQ(options.m_Q);
 
   PaError res;
   if (options.Play()) {
@@ -344,7 +346,7 @@ int main(int argc, char *argv[]) {
       progressBar.display();
 
       if (options.Play()) {
-        player->play(res.data()->all, frames_read * 2, 0.5);
+        player->play(audio_data->all, frames_read * 2, 0.5);
       }
 
       if (terminate_flag) {
