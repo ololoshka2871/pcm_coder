@@ -37,8 +37,8 @@ SampleGenerator::convert(const i_samples_format *in, size_t samples_count) {
 
 SampleGenerator::o_samples_format
 SampleGenerator::convert(const i_samples_format &in) {
-  auto L = static_cast<int32_t>(in.L * 0x7fff);
-  auto R = static_cast<int32_t>(in.R * 0x7fff);
+  auto L = in.L;
+  auto R = in.R;
 
   if (is_14_bit) {
     L >>= 2;

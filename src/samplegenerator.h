@@ -7,7 +7,7 @@
 #include "audioreader.h"
 
 struct SampleGenerator {
-  using i_samples_format = AudioSample<float>;
+  using i_samples_format = AudioSample<int16_t>;
   using o_samples_format = AudioSample<int16_t>;
 
   SampleGenerator(bool is_16_bit = false, bool use_dither = false);

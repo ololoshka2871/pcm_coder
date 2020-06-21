@@ -87,7 +87,7 @@ struct AudioReader::Context {
     resampler_ctx =
         swr_alloc_set_opts(nullptr, // we're allocating a new context
                            AV_CH_LAYOUT_STEREO,               // out_ch_layout
-                           AV_SAMPLE_FMT_FLT,                 // out_sample_fmt
+                           AV_SAMPLE_FMT_S16,                 // out_sample_fmt
                            output_sample_rate,                // out_sample_rate
                            pCodecContext->channel_layout == 0 // in_ch_layout
                                ? AV_CH_LAYOUT_STEREO
@@ -181,7 +181,7 @@ bool AudioReader::getNextAudioData(const AudioSample *&pData,
   av_frame_unref(pResampledFrame);
   pResampledFrame->channel_layout = AV_CH_LAYOUT_STEREO;
   pResampledFrame->sample_rate = output_sample_rate;
-  pResampledFrame->format = AV_SAMPLE_FMT_FLT;
+  pResampledFrame->format = AV_SAMPLE_FMT_S16;
 
   if (ctx->pFrame->channel_layout == 0) {
     ctx->pFrame->channel_layout = AV_CH_LAYOUT_STEREO;

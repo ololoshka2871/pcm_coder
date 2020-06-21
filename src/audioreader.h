@@ -13,7 +13,7 @@ struct AudioReader {
 
   static constexpr auto output_sample_rate = 44100;
 
-  using AudioSample = AudioSample<float>;
+  using AudioSample = AudioSample<int16_t>;
 
   AudioReader(const std::string &filename);
   ~AudioReader();

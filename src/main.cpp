@@ -287,7 +287,7 @@ int main(int argc, char *argv[]) {
 
   auto queuesSize = options.Play() ? 1 : 5;
 
-  const AudioSample<float> *audio_data;
+  const AudioSample<int16_t> *audio_data;
   uint32_t frames_read;
   std::chrono::nanoseconds timestamp;
 
@@ -346,7 +346,7 @@ int main(int argc, char *argv[]) {
       progressBar.display();
 
       if (options.Play()) {
-        player->play(audio_data->all, frames_read * 2, 0.5);
+        player->play(audio_data->all, frames_read * 2, 0.05);
       }
 
       if (terminate_flag) {
