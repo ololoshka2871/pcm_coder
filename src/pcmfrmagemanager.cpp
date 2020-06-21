@@ -86,7 +86,7 @@ void PCMFrmageManager::generateCRC(std::unique_ptr<PCMFrame> &frame) {
 
     if (!is14Bit) {
       *pl->pQ() = pl->generate16BitExtention();
-      pl->shiftMainData();
+      pl->shiftMainDataAndP();
     }
 
     *pl->pCRC() = pl->generateCRC();

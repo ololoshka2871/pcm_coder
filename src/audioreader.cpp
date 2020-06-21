@@ -21,7 +21,7 @@ extern "C" {
 #include "audioreader.h"
 
 struct AudioReader::Context {
-  Context(const std::string &filename) {
+  Context(const std::string &filename) : use_resempler{false} {
     int32_t res;
 
     pFormatContext = avformat_alloc_context();
@@ -84,35 +84,45 @@ struct AudioReader::Context {
 
     /**********************************/
 
-    resampler_ctx =
-        swr_alloc_set_opts(nullptr, // we're allocating a new context
-                           AV_CH_LAYOUT_STEREO,               // out_ch_layout
-                           AV_SAMPLE_FMT_S16,                 // out_sample_fmt
-                           output_sample_rate,                // out_sample_rate
-                           pCodecContext->channel_layout == 0 // in_ch_layout
-                               ? AV_CH_LAYOUT_STEREO
-                               : pCodecContext->channel_layout,
-                           pCodecContext->sample_fmt,  // in_sample_fmt
-                           pCodecContext->sample_rate, // in_sample_rate
-                           0,                          // log_offset
-                           NULL);                      // log_ctx
+    auto src_chanel_layout = pCodecContext->channel_layout == 0 // in_ch_layout
+                                 ? AV_CH_LAYOUT_STEREO
+                                 : pCodecContext->channel_layout;
 
-    if (resampler_ctx == nullptr) {
-      throw FFmpegException{ENOMEM};
-    }
+    if (pCodecContext->sample_fmt != AV_SAMPLE_FMT_S16 ||
+        pCodecContext->sample_rate != output_sample_rate ||
+        src_chanel_layout != AV_CH_LAYOUT_STEREO) {
 
-    pResampledFrame = av_frame_alloc();
-    if (pResampledFrame == nullptr) {
-      throw FFmpegException{ENOMEM};
+      resampler_ctx =
+          swr_alloc_set_opts(nullptr, // we're allocating a new context
+                             AV_CH_LAYOUT_STEREO, // out_ch_layout
+                             AV_SAMPLE_FMT_S16,   // out_sample_fmt
+                             output_sample_rate,  // out_sample_rate
+                             src_chanel_layout,
+                             pCodecContext->sample_fmt,  // in_sample_fmt
+                             pCodecContext->sample_rate, // in_sample_rate
+                             0,                          // log_offset
+                             NULL);                      // log_ctx
+
+      if (resampler_ctx == nullptr) {
+        throw FFmpegException{ENOMEM};
+      }
+
+      pResampledFrame = av_frame_alloc();
+      if (pResampledFrame == nullptr) {
+        throw FFmpegException{ENOMEM};
+      }
+      use_resempler = true;
     }
   }
 
   ~Context() {
-    swr_free(&resampler_ctx);
+    if (use_resempler) {
+      swr_free(&resampler_ctx);
+      av_frame_free(&pResampledFrame);
+    }
     avformat_close_input(&pFormatContext);
     av_packet_free(&pPacket);
     av_frame_free(&pFrame);
-    av_frame_free(&pResampledFrame);
     avcodec_free_context(&pCodecContext);
   }
 
@@ -126,6 +136,8 @@ struct AudioReader::Context {
 
   AVFrame *pResampledFrame;
   SwrContext *resampler_ctx;
+
+  bool use_resempler;
 };
 
 AudioReader::AudioReader(const std::string &filename)
@@ -177,24 +189,29 @@ bool AudioReader::getNextAudioData(const AudioSample *&pData,
     break;
   }
 
-  auto pResampledFrame = ctx->pResampledFrame;
-  av_frame_unref(pResampledFrame);
-  pResampledFrame->channel_layout = AV_CH_LAYOUT_STEREO;
-  pResampledFrame->sample_rate = output_sample_rate;
-  pResampledFrame->format = AV_SAMPLE_FMT_S16;
+  if (ctx->use_resempler) {
+    auto pResampledFrame = ctx->pResampledFrame;
+    av_frame_unref(pResampledFrame);
+    pResampledFrame->channel_layout = AV_CH_LAYOUT_STEREO;
+    pResampledFrame->sample_rate = output_sample_rate;
+    pResampledFrame->format = AV_SAMPLE_FMT_S16;
 
-  if (ctx->pFrame->channel_layout == 0) {
-    ctx->pFrame->channel_layout = AV_CH_LAYOUT_STEREO;
+    if (ctx->pFrame->channel_layout == 0) {
+      ctx->pFrame->channel_layout = AV_CH_LAYOUT_STEREO;
+    }
+
+    auto err =
+        swr_convert_frame(ctx->resampler_ctx, pResampledFrame, ctx->pFrame);
+    if (err != 0) {
+      throw FFmpegException{err};
+    }
+
+    pData = reinterpret_cast<AudioSample *>(&ctx->pResampledFrame->data[0][0]);
+    nb_samples = ctx->pResampledFrame->nb_samples;
+  } else {
+    pData = reinterpret_cast<AudioSample *>(&ctx->pFrame->data[0][0]);
+    nb_samples = ctx->pFrame->nb_samples;
   }
-
-  auto err =
-      swr_convert_frame(ctx->resampler_ctx, pResampledFrame, ctx->pFrame);
-  if (err != 0) {
-    throw FFmpegException{err};
-  }
-
-  pData = reinterpret_cast<AudioSample *>(&ctx->pResampledFrame->data[0][0]);
-  nb_samples = ctx->pResampledFrame->nb_samples;
 
   auto tb =
       av_q2d(ctx->pFormatContext->streams[ctx->audio_stream_index]->time_base);

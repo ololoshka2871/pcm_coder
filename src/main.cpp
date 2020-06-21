@@ -333,8 +333,8 @@ int main(int argc, char *argv[]) {
       std::cout << "Input: Decodec " << frames_read
                 << " frames, TIMESATMP: " << timestamp << std::endl;
 #endif
-      auto res = gen.convert(audio_data, frames_read);
 
+      auto res = gen.convert(audio_data, frames_read);
       lineGenerator.input(res);
 
       auto ts_s =

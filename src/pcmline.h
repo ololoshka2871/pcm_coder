@@ -45,7 +45,7 @@ struct PCMLine {
   uint16_t generate16BitExtention() const;
 
   // only for 16 bit mode. Set main samples 14 bit, not 16
-  void shiftMainData();
+  void shiftMainDataAndP();
 
   uint16_t generateCRC() const;
 
@@ -57,7 +57,7 @@ struct PCMLine {
 
   inline bool getBit(size_t bit_n) const {
     auto column = bit_n / BITS_PRE_COLUMN;
-    auto mask = (1u << 13) >> (bit_n % BITS_PRE_COLUMN);
+    auto mask = (1u << (BITS_PRE_COLUMN - 1)) >> (bit_n % BITS_PRE_COLUMN);
     return !!(data[column] & mask);
   }
 

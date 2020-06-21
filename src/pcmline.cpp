@@ -32,20 +32,16 @@ uint16_t PCMLine::generate16BitExtention() const {
   static constexpr uint16_t bit01 = (1 << 1) | (1 << 0);
 
   uint16_t res = 0;
-  uint16_t parity_acumulator = 0;
-
-  for (auto i = 0; i < TotalChanelSamples; ++i) {
+  for (auto i = 0; i < TotalChanelSamplesWithP; ++i) {
     uint16_t v = data[i] & bit01;
-    res |= v << (12 - i * 2);
-    parity_acumulator ^= v;
+    auto shift = (TotalChanelSamples - i) * 2;
+    res |= v << shift;
   }
-  res |= parity_acumulator;
-
   return res;
 }
 
-void PCMLine::shiftMainData() {
-  for (auto i = 0; i < TotalChanelSamples; ++i) {
+void PCMLine::shiftMainDataAndP() {
+  for (auto i = 0; i < TotalChanelSamplesWithP; ++i) {
     data[i] >>= 2;
   }
 }
