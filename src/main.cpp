@@ -41,34 +41,10 @@ struct Options {
         ->expected(1);
   }
 
-  template <>
-#ifdef _MSC_VER
-  static
-#endif
-      auto
-      newOption<std::string>(CLI::App &app, const std::string &option_name,
-                             std::string &value,
-                             const std::string &description) {
-    return app
-        .add_option(option_name, value,
-                    description + " [Default: " + value + "]")
-        ->expected(1);
-  }
-
   template <typename T>
   static std::string generate_default_str(std::string &default_str,
                                           const T &val) {
     return default_str.empty() ? " [Default: " + std::to_string(val) + "]"
-                               : " [Default: " + default_str + "]";
-  }
-
-  template <>
-#ifdef _MSC_VER
-  static
-#endif
-      std::string
-      generate_default_str<bool>(std::string &default_str, const bool &val) {
-    return default_str.empty() ? " [Default: " + Options::printBool(val) + "]"
                                : " [Default: " + default_str + "]";
   }
 
@@ -131,6 +107,23 @@ struct Options {
     }
   }
 };
+
+template <>
+auto Options::newOption<std::string>(CLI::App &app,
+                                     const std::string &option_name,
+                                     std::string &value,
+                                     const std::string &description) {
+  return app
+      .add_option(option_name, value, description + " [Default: " + value + "]")
+      ->expected(1);
+}
+
+template <>
+std::string Options::generate_default_str<bool>(std::string &default_str,
+                                                const bool &val) {
+  return default_str.empty() ? " [Default: " + Options::printBool(val) + "]"
+                             : " [Default: " + default_str + "]";
+}
 
 const char Options::uncompresed[] = "rawvideo";
 

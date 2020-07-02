@@ -166,7 +166,7 @@ std::chrono::nanoseconds AudioReader::duration() const {
   return std::chrono::duration_cast<std::chrono::nanoseconds>(d);
 }
 
-bool AudioReader::getNextAudioData(const AudioSample *&pData,
+bool AudioReader::getNextAudioData(const AudioSample_t *&pData,
                                    uint32_t &nb_samples,
                                    std::chrono::nanoseconds &timestamp) {
   while (1) {
@@ -206,10 +206,11 @@ bool AudioReader::getNextAudioData(const AudioSample *&pData,
       throw FFmpegException{err};
     }
 
-    pData = reinterpret_cast<AudioSample *>(&ctx->pResampledFrame->data[0][0]);
+    pData =
+        reinterpret_cast<AudioSample_t *>(&ctx->pResampledFrame->data[0][0]);
     nb_samples = ctx->pResampledFrame->nb_samples;
   } else {
-    pData = reinterpret_cast<AudioSample *>(&ctx->pFrame->data[0][0]);
+    pData = reinterpret_cast<AudioSample_t *>(&ctx->pFrame->data[0][0]);
     nb_samples = ctx->pFrame->nb_samples;
   }
 

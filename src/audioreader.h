@@ -13,7 +13,7 @@ struct AudioReader {
 
   static constexpr auto output_sample_rate = 44100;
 
-  using AudioSample = AudioSample<int16_t>;
+  using AudioSample_t = AudioSample<int16_t>;
 
   AudioReader(const std::string &filename);
   ~AudioReader();
@@ -22,7 +22,7 @@ struct AudioReader {
 
   std::chrono::nanoseconds duration() const;
 
-  bool getNextAudioData(const AudioSample *&pData, uint32_t &nb_samples,
+  bool getNextAudioData(const AudioSample_t *&pData, uint32_t &nb_samples,
                         std::chrono::nanoseconds &timestamp);
 
 private:
