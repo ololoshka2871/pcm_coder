@@ -339,7 +339,7 @@ int main(int argc, char *argv[]) {
       progressBar.display();
 
       if (options.Play()) {
-        player->play(audio_data->all, frames_read * 2, 0.05);
+        player->play(audio_data->all, frames_read * 2, 0.5);
       }
 
       if (terminate_flag) {
