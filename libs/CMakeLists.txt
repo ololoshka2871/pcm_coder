@@ -65,7 +65,7 @@ ExternalProject_Get_Property(project_portaudio install_dir)
 set(portaudio_install_dir ${install_dir})
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-	set(portaudio_libName portaudio_static${CMAKE_STATIC_LIBRARY_SUFFIX})
+	set(portaudio_libName portaudio_static_x86${CMAKE_STATIC_LIBRARY_SUFFIX})
 else()
 	set(portaudio_libName portaudio_static_x64${CMAKE_STATIC_LIBRARY_SUFFIX})
 endif()
