@@ -293,6 +293,7 @@ int main(int argc, char *argv[]) {
       .setGenerateP(options.parity)
       .setGenerateQ(options.m_Q);
 
+#ifdef PLAYER
   PaError res;
   if (options.Play()) {
     res = Pa_Initialize();
@@ -301,6 +302,7 @@ int main(int argc, char *argv[]) {
       return 1;
     }
   }
+#endif
 
   std::cout << "Start " << (options.Play() ? "playing..." : "encoding...")
             << std::endl;
@@ -311,11 +313,13 @@ int main(int argc, char *argv[]) {
   auto progressBar = initProgressBar(duration);
 
   {
+#ifdef PLAYER
     std::unique_ptr<Player> player;
     if (options.Play()) {
       player = std::make_unique<Player>(0, queuesSize,
                                         AudioReader::output_sample_rate);
     }
+#endif
 
     // --- Грязный хак ---
     unsigned int &progress_value =
@@ -338,9 +342,11 @@ int main(int argc, char *argv[]) {
 
       progressBar.display();
 
+#ifdef PLAYER
       if (options.Play()) {
         player->play(audio_data->all, frames_read * 2, 0.5);
       }
+#endif
 
       if (terminate_flag) {
         progressBar.done();
@@ -354,10 +360,12 @@ int main(int argc, char *argv[]) {
 
 done:
   lineGenerator.flush();
-
+  
+#ifdef PLAYER
   if (options.Play()) {
     Pa_Terminate();
   }
+#endif
 
   return 0;
 }

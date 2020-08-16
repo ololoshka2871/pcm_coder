@@ -58,6 +58,7 @@ if (NOT WIN32)
     target_link_libraries(${PROJECT_NAME}
         PUBLIC
             stdc++
+            pthread
     )
 endif()
 

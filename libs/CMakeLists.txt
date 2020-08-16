@@ -88,14 +88,22 @@ else()
 find_package(SDL2)
 find_package(PORTAUDIO)
 
-set(ADD_LIBS SDL2::SDL2main SDL2::SDL2 ${PORTAUDIO_LIBRARIES})
-set(ADD_INCLUDES_PATHS ${PORTAUDIO_INCLUDE_DIRS})
-
 endif()
 
-if (SDL2_FOUND AND PORTAUDIO_FOUND)
-    set(PlayerWriter_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pcm_utils/PlayerWriter)
+set(PlayerWriter_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pcm_utils/PlayerWriter)
 
+if ((SDL2_FOUND) AND (PORTAUDIO_FOUND) AND (PORTAUDIO_VERSION EQUAL 19))
+    set(ADD_LIBS ${PORTAUDIO_LIBRARIES})
+    set(ADD_INCLUDES_PATHS ${PORTAUDIO_INCLUDE_DIRS})
+    if (SDL2_LIBRARIES)
+    	list(APPEND ADD_LIBS ${SDL2_LIBRARIES})
+    	list(APPEND ADD_INCLUDES_PATHS ${SDL2_INCLUDE_DIRS})
+    else()
+    	list(APPEND ADD_LIBS SDL2::SDL2main SDL2::SDL2)
+    endif()
+    
+    message(STATUS "Include: " ${ADD_INCLUDES_PATHS})
+    
     set(PlayerWriter_SRC
         ${PlayerWriter_DIR}/player.cpp
     )
@@ -118,6 +126,7 @@ if (SDL2_FOUND AND PORTAUDIO_FOUND)
 else()
     message(STATUS "SDL2 or Portaudio not found. Display pcm not supported!")
     add_library(PlayerWriter INTERFACE)
+    target_include_directories(PlayerWriter INTERFACE ${PlayerWriter_DIR})
     set(USE_PLAYER FALSE PARENT_SCOPE)
 endif()
 
