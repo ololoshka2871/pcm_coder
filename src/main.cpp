@@ -227,7 +227,7 @@ static auto createLineManager(const Options &options,
       options.width14, options.parity, options.generateQ(),
       options.copyProtection, options.pal, outQueue, quieueSize);
 
-  manager->start();
+  // manager->start();
 
   return manager;
 }
@@ -288,7 +288,8 @@ int main(int argc, char *argv[]) {
 
   auto consmer = createConsumerThread(options, queuesSize);
   auto manager = createLineManager(options, consmer->getQueue(), queuesSize);
-  PCMLineGenerator lineGenerator{manager->getInputQueue()};
+  PCMLineGenerator lineGenerator{
+      /*manager->getInputQueue()*/ manager->getLineProcessor()};
   lineGenerator.set14BitMode(options.width14)
       .setGenerateP(options.parity)
       .setGenerateQ(options.m_Q);
@@ -360,7 +361,7 @@ int main(int argc, char *argv[]) {
 
 done:
   lineGenerator.flush();
-  
+
 #ifdef PLAYER
   if (options.Play()) {
     Pa_Terminate();

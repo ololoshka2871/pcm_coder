@@ -2,9 +2,16 @@
 
 #include "pcmlinegenerator.h"
 
+/*
 PCMLineGenerator::PCMLineGenerator(LockingQueue<PCMLine> &outputQueue)
     : outputQueue(outputQueue), mode14Bit{true}, generateP{true}, generateQ{
                                                                       true} {}
+                                                                      */
+
+PCMLineGenerator::PCMLineGenerator(
+    PCMFrmageManager::ILineProcessor *line_processor)
+    : line_processor{line_processor}, mode14Bit{true}, generateP{true},
+      generateQ{true} {}
 
 void PCMLineGenerator::input(
     const std::vector<SampleGenerator::o_samples_format> &samples) {
@@ -43,7 +50,10 @@ void PCMLineGenerator::input(
   }
 }
 
-void PCMLineGenerator::flush() { sendLine(PCMLine::eof()); }
+void PCMLineGenerator::flush() {
+  auto eof = PCMLine::eof();
+  sendLine(eof);
+}
 
 PCMLineGenerator &PCMLineGenerator::set14BitMode(bool mode14Bit) {
   this->mode14Bit = mode14Bit;

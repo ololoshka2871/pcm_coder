@@ -5,6 +5,37 @@
 
 #include "pcmfrmagemanager.h"
 
+struct LineProcessor : public PCMFrmageManager::ILineProcessor {
+  LineProcessor(PCMFrmageManager *fm) : fm{fm} {}
+
+  void process(PCMLine &line) override {
+    if (line.isEOF()) {
+      fm->process_redy_frame();
+      fm->outQeue.push(std::unique_ptr<PCMFrame>());
+      return;
+    }
+
+    for (auto it = line.iterator(); it != line.pCRC(); ++it) {
+      auto &dest = *fm->mainItherator;
+
+      dest = *it;
+
+      if (fm->mainItherator.lastItem()) {
+        fm->process_redy_frame();
+      }
+
+      ++fm->mainItherator;
+      if (!fm->mainItherator.valid()) {
+        fm->swapBuffers();
+        fm->mainItherator = fm->mainItherator.wrap(*fm->currentFrame);
+      }
+    }
+  }
+
+private:
+  PCMFrmageManager *fm;
+};
+
 PCMFrmageManager::PCMFrmageManager(
     bool is14bit, bool generate_P, bool generate_Q, bool copy_protection,
     bool isPal, LockingQueue<std::unique_ptr<IFrame>> &outQeue,
@@ -12,9 +43,10 @@ PCMFrmageManager::PCMFrmageManager(
     : heigth{getHeigth(isPal)}, headerlune{buildHeaderLine(
                                     copy_protection, generate_P, generate_Q)},
       inputQueue{quieueSize}, outQeue{outQeue},
-      currentFrame{std::make_unique<PCMFrame>(heigth, headerlune)},
-      nextFrame{std::make_unique<PCMFrame>(heigth, headerlune)},
-      mainItherator{*currentFrame}, is14Bit{is14bit} {}
+      currentFrame{std::make_unique<PCMFrame>(getHeigth(isPal), headerlune)},
+      nextFrame{std::make_unique<PCMFrame>(getHeigth(isPal), headerlune)},
+      mainItherator{*currentFrame}, processor{new LineProcessor{this}},
+      is14Bit{is14bit} {}
 
 PCMFrmageManager::~PCMFrmageManager() {
   if (pThread != nullptr) {
@@ -22,6 +54,7 @@ PCMFrmageManager::~PCMFrmageManager() {
   }
 }
 
+/*
 PCMFrmageManager &PCMFrmageManager::start() {
   if (pThread != nullptr) {
     throw std::string("Allready sarted!");
@@ -31,7 +64,7 @@ PCMFrmageManager &PCMFrmageManager::start() {
       [](PCMFrmageManager *_this) { _this->thread_func(); }, this});
 
   return *this;
-}
+}*/
 
 void PCMFrmageManager::join() { pThread->join(); }
 
@@ -39,6 +72,7 @@ size_t PCMFrmageManager::getHeigth(bool isPal) {
   return isPal ? PCMFrame::PAL_HEIGTH : PCMFrame::NTSC_HEIGTH;
 }
 
+/*
 void PCMFrmageManager::thread_func() {
   PCMLine line;
   int frame_counter = 0;
@@ -68,7 +102,7 @@ void PCMFrmageManager::thread_func() {
       }
     }
   }
-}
+}*/
 
 void PCMFrmageManager::process_redy_frame() {
   std::unique_ptr<PCMFrame> processedFrame =
