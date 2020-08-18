@@ -152,6 +152,7 @@ void SDL2Display::GuiThread() {
 }
 
 void SDL2Display::renderFrame() {
+#if 1
   uint8_t *pixels;
   int pitch;
 
@@ -189,4 +190,5 @@ void SDL2Display::renderFrame() {
     return;
   }
   SDL_RenderPresent(ctx->renderer);
+#endif
 }

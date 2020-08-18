@@ -66,7 +66,12 @@ struct PCMLine {
     return !!(data[CRC_OFFSET] & mask);
   }
 
+  uint8_t getFragment(uint32_t fragment) const;
+  uint8_t getCrcFragment(uint32_t crc_fragment) const;
+
   uint8_t getByte(size_t byten) const;
+
+  uint16_t getDataWord(uint8_t n) const;
 
   void renderTo(uint8_t *pixelBuffer, uint8_t H) const;
 

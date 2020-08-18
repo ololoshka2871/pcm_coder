@@ -17,28 +17,6 @@ static const std::pair<int32_t, int32_t> &getExtends(bool isPal) {
   return expends[isPal];
 }
 
-/*
-    auto container = frame->render();
-    auto src_accessor = container.getAccessor();
-
-    IFrame::PixelContainer ppFrame{width, heigth};
-    auto dest_accessor = ppFrame.getAccessor();
-
-    auto expend = getExtends(PAL);
-
-    int32_t first_src_line = std::max(crop_up - expend.first, 0);
-    uint32_t last_src_line = width;
-
-    uint32_t dest_line = std::max(expend.first - crop_up, 0);
-    auto line = first_src_line;
-    for (; line < 200; ++line, ++dest_line) {
-      auto _dest = dest_accessor.getLine(dest_line);
-      auto _src = src_accessor.getLine(line);
-      auto _w = frame->width();
-      std::memcpy(_dest, _src, _w);
-    }
- */
-
 struct FrameProxy : public IFrame {
   FrameProxy(std::unique_ptr<IFrame> &src_frame, int32_t src_heigth,
              int32_t crop_up, int32_t crop_down, uint8_t factor)
@@ -80,7 +58,9 @@ struct FrameProxy : public IFrame {
         auto dst = dest_accessor.getLine(dest_line);
         for (auto src_pixel_n = 0; src_pixel_n < src_accessor.getwidth();
              ++src_pixel_n) {
-          std::memset(dst, *src, factor);
+          if (*src) {
+            std::memset(dst, *src, factor);
+          }
           dst += factor;
           ++src;
         }
