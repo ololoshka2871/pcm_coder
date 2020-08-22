@@ -5,6 +5,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #endif
+
 #include "progresscpp/ProgressBar.hpp"
 
 #include "AudioProdusser.h"
@@ -13,8 +14,11 @@
 #include "LineGeneratorStage.h"
 #include "PCMFrmageStage.h"
 #include "PixelDuplicatorStage.h"
+
+#ifdef PLAYER
 #include "RPIFbDisplayConsumer.h"
 #include "SDL2DisplayConsumer.h"
+#endif
 
 #include "ffmpegvideocoder.h"
 
@@ -74,6 +78,28 @@ int main(int argc, char *argv[]) {
 
   audioprodusser.reader().dumpFileInfo(std::cout);
 
+#ifdef PLAYER
+  if (options.Play() && options.rpiMode) {
+    SDL2DisplayConsumerBase::VideoInit();
+    try {
+      options.pal = SDL2DisplayConsumerBase::DetectPALNTSC();
+
+      const auto z = options.pal ? 0 : 0;
+
+      std::cout << "Raspberry Pi playing mode detected: "
+                << options.formatsStr() << std::endl
+                << "For correct playing shift Visable Region up by " << z
+                << "lines!" << std::endl
+                << "Example: $ sudo fbshift +" << z << std::endl;
+    } catch (...) {
+      auto [w, h] = SDL2DisplayConsumerBase::getDisplaySize();
+      std::cerr << "Failed to detect Raspberry Pi output mode! (" << w << "x"
+                << h << ")" << std::endl;
+      return 1;
+    }
+  }
+#endif
+
   auto &stage =
       audioprodusser
           .NextStage(new BitWidthConverter{options.width14, options.use_dither})
@@ -81,26 +107,32 @@ int main(int argc, char *argv[]) {
                                             options.generateQ()})
           .NextStage(new PCMFrmageStage(options.width14, options.parity,
                                         options.generateQ(),
-                                        options.copyProtection, options.pal))
-          .NextStage(new PixelDuplicatorStage(
-              options.pal, options.crop_top, options.crop_bot,
-              FFmpegVideoCoder::PIXEL_WIDTH / PCMFrame::PIXEL_WIDTH));
+                                        options.copyProtection, options.pal));
 
   if (options.Play()) {
-    if (true) {
-      auto sdl2display = new SDL2DisplayConsumer();
-      sdl2display->onClose([]() { terminate_flag = true; });
-      sdl2display->InitRenderer(
-          PCMFrame::PIXEL_WIDTH *
-              (FFmpegVideoCoder::PIXEL_WIDTH / PCMFrame::PIXEL_WIDTH),
+#ifdef PLAYER
+    SDL2DisplayConsumerBase *display;
+    if (options.rpiMode) {
+      display = new RPIFbDisplayConsumer();
+      std::apply(
+          [&display](auto &&... args) { display->InitRenderer(args...); },
+          SDL2DisplayConsumer::getDisplaySize());
+    } else {
+      display = new SDL2DisplayConsumer();
+      display->InitRenderer(
+          FFmpegVideoCoder::PIXEL_WIDTH,
           PixelDuplicatorStage::FrameHeigth(options.pal, options.crop_top,
                                             options.crop_bot));
-      stage.NextConsumer(sdl2display);
-    } else {
-      stage.NextConsumer(new RPIFbDisplayConsumer());
     }
+    display->onClose([]() { terminate_flag = true; });
+    stage.NextConsumer(display);
+#endif
   } else {
-    stage.NextConsumer(new FFmpegVideoCoderConsumer());
+    stage
+        .NextStage(new PixelDuplicatorStage(
+            options.pal, options.crop_top, options.crop_bot,
+            FFmpegVideoCoder::PIXEL_WIDTH / PCMFrame::PIXEL_WIDTH))
+        .NextConsumer(new FFmpegVideoCoderConsumer());
   }
 
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(

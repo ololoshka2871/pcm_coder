@@ -17,6 +17,9 @@ struct Options {
   bool parity = true;
   bool m_Q = true;
   bool copyProtection = false;
+#ifdef PLAYER
+  bool rpiMode = false;
+#endif
 
   uint32_t crop_top = 0;
   uint32_t crop_bot = 0;
@@ -30,7 +33,13 @@ struct Options {
 
   bool generateQ() const { return m_Q & width14; }
 
-  bool Play() const { return OutputFile.empty(); }
+  bool Play() const {
+#ifdef PLAYER
+    return OutputFile.empty();
+#else
+    return false;
+#endif
+  }
 
   void dump(std::ostream &os) const;
 };

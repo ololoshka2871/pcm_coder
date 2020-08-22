@@ -1,14 +1,13 @@
 #ifndef RPIFBDISPLAYCONSUMER_H
 #define RPIFBDISPLAYCONSUMER_H
 
-#include "IConsumer.h"
+#include "SDL2DisplayConsumerBase.h"
 
-#include "iframe.h"
+struct RPIFbDisplayConsumer : public SDL2DisplayConsumerBase {
+  void InitRenderer(int width, int heigth) override;
 
-struct RPIFbDisplayConsumer : public IConsumer<IFrame> {
-  RPIFbDisplayConsumer();
-
-  void Ressive(const IFrame &frame) override;
+protected:
+  void renderFrame(const IFrame &frame) override;
 };
 
 #endif // RPIFBDISPLAYCONSUMER_H

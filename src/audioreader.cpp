@@ -153,7 +153,7 @@ void AudioReader::dumpFileInfo(std::ostream &os) const {
 
   const auto bitrate = ctx->pCodecContext->bit_rate / 1000.0;
 
-  os << "Audio info:" << endl << "\tDuration: " << duration() << " s." << endl;
+  os << "Audio info:" << endl << "\tDuration: " << duration() << endl;
   if (bitrate > 0) {
     os << "\tBitrate: " << bitrate << " Kb/s" << endl;
   }

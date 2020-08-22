@@ -62,14 +62,23 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
 #endif
       ;
 
+#ifdef PLAYER
+  auto rpi_mode =
+      newFlag(app, "-R,--rpi-mode", options.rpiMode, "Raspberry PI mode");
+#endif
+
   auto codec_opt = newOption(app, "-c,--video-codec", options.codec,
                              "Video codec to compress result (for FFmpeg).")
                        ->needs(output);
 
-  newFlag(app, "--pal,!--ntsc", options.pal, "Output video format: PAL/NTSC.",
-          options.formatsStr());
-  newFlag(app, "--14,!--16", options.width14,
-          "Output bit widtht: 14/16 bit. 16BIT NOT WORKING YET",
+  newFlag(app, "--pal,!--ntsc", options.pal,
+          "Output video format: PAL/NTSC. (--rpi-mode -> auto)",
+          options.formatsStr())
+#ifdef PLAYER
+      ->excludes(rpi_mode)
+#endif
+      ;
+  newFlag(app, "--14,!--16", options.width14, "Output bit widtht: 14/16 bit.",
           options.bitWidthsStr());
   newFlag(app, "--with-dither,!--no-dither,!--ND", options.use_dither,
           "Use dither when convering 16 bit -> 14 bit.");
@@ -83,9 +92,17 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
       ->needs(output)
       ->needs(codec_opt);
   newOption(app, "--crop-top", options.crop_top,
-            "Crop N lines from TOP of frame.");
+            "Crop N lines from TOP of frame.")
+#ifdef PLAYER
+      ->excludes(rpi_mode)
+#endif
+      ;
   newOption(app, "--crop-bot", options.crop_bot,
-            "Crop N lines from BOTTOM of frame.");
+            "Crop N lines from BOTTOM of frame.")
+#ifdef PLAYER
+      ->excludes(rpi_mode)
+#endif
+      ;
 }
 
 void Options::dump(std::ostream &os) const {
@@ -95,16 +112,28 @@ void Options::dump(std::ostream &os) const {
   if (!Play()) {
     os << "\tOutput File: " << OutputFile << endl
        << "\tCodec: " << codec << endl;
+  } else {
+#ifdef PLAYER
+    os << "\tPlaying mode: " << (rpiMode ? "RaspberryPI" : "Window") << endl;
+#endif
   }
-  os << "\tFormat: " << formatsStr() << endl
+
+  os << "\tFormat: "
+#ifdef PLAYER
+     << (rpiMode ? "Auto" : formatsStr())
+#else
+     << formatsStr()
+#endif
+     << endl
      << "\tBit width: " << bitWidthsStr() << endl
      << "\tGenerate parity: " << printBool(parity) << endl
      << "\tAdd copy-protection bit: " << printBool(copyProtection) << endl;
   if (width14) {
-    os << "\tGenerate Q: " << printBool(generateQ()) << endl
-       << "\tUse dither: " << printBool(width14 ? use_dither : false) << endl;
+    os << "\tGenerate Q: " << printBool(generateQ()) << endl;
   }
-  if (crop_top || crop_bot) {
+  os << "\tUse dither: " << printBool(width14 ? use_dither : false) << endl;
+
+  if ((crop_top || crop_bot) && !rpiMode) {
     os << "\tCrop video top=" << crop_top << ", bot=" << crop_bot << endl;
   }
   if (codec != uncompresed) {

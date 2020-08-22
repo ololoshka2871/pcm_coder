@@ -60,6 +60,9 @@ set(SRC
     FrameProxy.h
     FrameProxy.cpp
 
+    SDL2DisplayConsumerBase.h
+    SDL2DisplayConsumerBase.cpp
+
     SDL2DisplayConsumer.h
     SDL2DisplayConsumer.cpp
 
