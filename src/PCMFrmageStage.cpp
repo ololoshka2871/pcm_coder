@@ -66,7 +66,7 @@ void PCMFrmageStage::process_redy_frame() {
       std::make_unique<PCMFrame>(heigth, headerlune);
 
   std::swap(processedFrame, currentFrame);
-  mainItherator = mainItherator.wrap(*currentFrame);
+  mainItherator = mainItherator.changeFrame(*currentFrame);
 
   generateCRC(processedFrame);
 

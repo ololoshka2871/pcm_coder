@@ -72,8 +72,10 @@ SDL2Display::SDL2Display(const std::function<void()> &onClose,
 
 SDL2Display::~SDL2Display() {
   /*if (!ctx->quit) {*/
-  ctx->event->type = SDL_QUIT;
-  SDL_PushEvent(ctx->event.get());
+  if (ctx->event) {
+    ctx->event->type = SDL_QUIT;
+    SDL_PushEvent(ctx->event.get());
+  }
   ctx->quit = true;
   ctx->pThread->join();
   //}

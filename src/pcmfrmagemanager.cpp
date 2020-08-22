@@ -109,6 +109,7 @@ void PCMFrmageManager::process_redy_frame() {
       std::make_unique<PCMFrame>(heigth, headerlune);
 
   std::swap(processedFrame, currentFrame);
+  mainItherator.changeFrame(*currentFrame);
 
   generateCRC(processedFrame);
   outQeue.push(std::move(processedFrame));

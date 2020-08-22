@@ -12,9 +12,13 @@ bool SampleStairsItherator::lastItem() const {
 SampleStairsItherator SampleStairsItherator::wrap(PCMFrame &newframe) {
   return SampleStairsItherator{
       &newframe,
-      (row < 0) ? int32_t(newframe.heigth() + row)    // wrap up
-                : int32_t(row - frame->dataHeigth()), // wrap down
+      (row < 0) ? int32_t(newframe.dataHeigth() + row) // wrap up
+                : int32_t(row - frame->dataHeigth()),  // wrap down
       column};
+}
+
+SampleStairsItherator SampleStairsItherator::changeFrame(PCMFrame &newframe) {
+  return SampleStairsItherator{&newframe, row, column};
 }
 
 uint16_t &SampleStairsItherator::operator*() {

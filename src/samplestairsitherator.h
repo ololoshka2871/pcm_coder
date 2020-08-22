@@ -22,6 +22,7 @@ struct SampleStairsItherator {
   bool lastItem() const;
 
   SampleStairsItherator wrap(PCMFrame &newframe);
+  SampleStairsItherator changeFrame(PCMFrame &newframe);
 
   uint16_t &operator*();
   SampleStairsItherator &operator++();
