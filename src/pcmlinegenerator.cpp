@@ -51,7 +51,7 @@ void PCMLineGenerator::input(
 }
 
 void PCMLineGenerator::flush() {
-  auto eof = PCMLine::eof();
+  PCMLineEof eof;
   sendLine(eof);
 }
 

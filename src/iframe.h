@@ -38,7 +38,7 @@ struct IFrame {
 
   IFrame(int32_t width, int32_t heigth) : m_width{width}, m_heigth{heigth} {}
 
-  virtual ~IFrame() {}
+  virtual ~IFrame() = default;
 
   virtual PixelContainer
   render(uint8_t grayLevel = default_gray_lvl,
@@ -46,6 +46,8 @@ struct IFrame {
 
   virtual int32_t width() const { return m_width; }
   virtual int32_t heigth() const { return m_heigth; }
+
+  virtual bool Eof() const = 0;
 
 protected:
   int32_t m_width, m_heigth;

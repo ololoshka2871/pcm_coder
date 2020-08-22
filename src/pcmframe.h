@@ -38,9 +38,22 @@ struct PCMFrame : public IFrame {
 
   int32_t heigth() const override;
 
+  bool Eof() const override { return false; }
+
 private:
   std::vector<PCMLine> data;
   const PCMLine &headerLine;
+};
+
+struct PCMFrameEof : public IFrame {
+  PCMFrameEof() : IFrame{0, 0} {}
+
+  PixelContainer render(uint8_t grayLevel = default_gray_lvl,
+                        uint8_t white_lvl = default_white_lvl) const override {
+    return PixelContainer(1, 1);
+  }
+
+  bool Eof() const override { return true; }
 };
 
 #endif // PCMFRAME_H

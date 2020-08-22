@@ -10,7 +10,7 @@ struct SampleGenerator {
   using i_samples_format = AudioSample<int16_t>;
   using o_samples_format = AudioSample<int16_t>;
 
-  SampleGenerator(bool is_16_bit = false, bool use_dither = false);
+  SampleGenerator(bool is_14_bit = false, bool use_dither = false);
 
   std::vector<o_samples_format> convert(const i_samples_format *in,
                                         size_t samples_count);

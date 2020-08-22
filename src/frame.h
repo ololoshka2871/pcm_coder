@@ -14,6 +14,8 @@ struct Frame : public IFrame {
 
   uint8_t *data_pixels() { return m_pixels.pixels.data(); }
 
+  virtual bool Eof() const override { return false; }
+
 private:
   PixelContainer m_pixels;
 };

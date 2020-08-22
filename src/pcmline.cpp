@@ -40,12 +40,6 @@ static void RebuildPixelCache(uint8_t H) {
   CachedHValue = H;
 }
 
-PCMLine PCMLine::eof() {
-  PCMLine line;
-  line.isEof = true;
-  return line;
-}
-
 uint16_t PCMLine::generateP() const {
   uint16_t P = 0;
   for (auto i = 0; i < TotalChanelSamples; ++i) {

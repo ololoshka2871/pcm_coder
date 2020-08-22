@@ -31,12 +31,13 @@ struct PCMLine {
   static constexpr auto TOTAL_BITS_PRE_LINE =
       TOTAL_DATA_BITS_PRE_LINE + sizeof(uint16_t) * CHAR_BIT;
 
-  PCMLine() : data{}, isEof{false} {}
+  PCMLine() : data{} {}
 
-  static PCMLine eof();
-
+  const uint16_t *iterator() const { return std::begin(data); }
   uint16_t *iterator() { return std::begin(data); }
+  const uint16_t *pCRC() const { return &data[TotalDataPreLine]; }
   uint16_t *pCRC() { return &data[TotalDataPreLine]; }
+  const uint16_t *pQ() const { return &data[Q_offset]; }
   uint16_t *pQ() { return &data[Q_offset]; }
   uint16_t *end() { return std::end(data); }
 
@@ -53,7 +54,7 @@ struct PCMLine {
 
   uint16_t &operator[](size_t sample) { return data[sample]; }
 
-  bool isEOF() const { return isEof; }
+  virtual bool isEOF() const { return false; }
 
   inline bool getBit(size_t bit_n) const {
     auto column = bit_n / BITS_PRE_COLUMN;
@@ -77,12 +78,15 @@ struct PCMLine {
 
 private:
   uint16_t data[TotalDataPreLineWithCRC];
-  bool isEof;
 
   std::array<uint8_t, TotalChanelSamplesWithP * BITS_PRE_COLUMN>
   toBinArray(const uint16_t data[]) const;
 
   uint16_t QfromBinArray(std::array<uint8_t, BITS_PRE_COLUMN> &src) const;
+};
+
+struct PCMLineEof : public PCMLine {
+  bool isEOF() const override { return true; }
 };
 
 #endif // PCMLINE_H
