@@ -50,59 +50,37 @@ static void reset_texture(SDL_Texture *texture, int width, int heigth) {
 
 SDL2DisplayConsumer::SDL2DisplayConsumer() : window{} {
   SDL_Init(SDL_INIT_VIDEO);
+
+  buildGrayscalePalete();
 }
 
 SDL2DisplayConsumer::~SDL2DisplayConsumer() {
-  /*
-if (texture != nullptr) {
-  SDL_DestroyTexture(texture);
-}*/
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
   SDL_Quit();
 }
 
-void SDL2DisplayConsumer::Ressive(const IFrame &frame) {
-  static int i = 0;
-  if (frame.Eof()) {
-    std::cout << "frames processed: " << i;
-    return;
+void SDL2DisplayConsumer::InitRenderer(int width, int heigth) {
+  this->width = width;
+  this->heigth = heigth;
+
+  window =
+      SDL_CreateWindow("PCM", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                       width, heigth, SDL_WINDOW_ALLOW_HIGHDPI);
+
+  renderer = SDL_CreateRenderer(
+      window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+  if (renderer == nullptr) {
+    std::cerr << "Failed to create SDL renderer: " << SDL_GetError()
+              << std::endl;
+    throw 0;
   }
-  ++i;
+}
 
+void SDL2DisplayConsumer::Ressive(const IFrame &frame) {
   if (window == nullptr) {
-    width = frame.width();
-    heigth = frame.heigth();
-
-    window =
-        SDL_CreateWindow("PCM", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                         width, heigth, SDL_WINDOW_ALLOW_HIGHDPI);
-
-    renderer = SDL_CreateRenderer(
-        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-
-    if (renderer == nullptr) {
-      std::cerr << "Failed to create SDL renderer: " << SDL_GetError()
-                << std::endl;
-      throw 0;
-    }
-
-    /*
-    {
-      auto fmt = SDL_PIXELFORMAT_RGB565;
-      texture = SDL_CreateTexture(renderer, fmt, SDL_TEXTUREACCESS_STREAMING,
-                                  width, heigth);
-      {
-        uint32_t f;
-        SDL_QueryTexture(texture, &f, nullptr, nullptr, nullptr);
-        assert(f == fmt);
-      }
-    }
-    */
-
-    // reset_texture(texture, frame.width(), frame.heigth());
-
-    buildGrayscalePalete();
+    InitRenderer(frame.width(), frame.heigth());
   }
 
   renderFrame(frame.render().pixels);
@@ -121,50 +99,10 @@ void SDL2DisplayConsumer::onClose(const std::function<void()> &cb) {
   exit_cb = cb;
 }
 
-void SDL2DisplayConsumer::writeTexture(
-    const std::vector<uint8_t> &frameToDisplay, int pitch, uint8_t *pixels) {
-  auto graysacle_data = &frameToDisplay[0];
-
-  auto &cache = pixelcache;
-  auto end = cache.end();
-
-  std::memset(pixels, 0, heigth * pitch);
-
-#if 1
-  for (auto line = 0; line < heigth; ++line) {
-    auto base = reinterpret_cast<rgb565 *>(&pixels[line * pitch]);
-    for (auto p = 0; p < width; ++p) {
-      auto pixel = *graysacle_data++;
-      if (pixel) {
-        auto it = cache.find(pixel);
-        if (it != end) {
-          base[p] = it->second;
-        } else {
-          base[p] = cache[pixel] = Initrgb565gray(pixel);
-        }
-      }
-    }
-  }
-#endif
-}
-
 void SDL2DisplayConsumer::renderFrame(
     const std::vector<uint8_t> &frameToDisplay) {
 
 #if 1
-  /*
-uint8_t *pixels;
-int pitch;
-
-auto res = SDL_LockTexture(texture, nullptr, (void **)&pixels, &pitch);
-if (res == 0) {
-  writeTexture(frameToDisplay, pitch, pixels);
-  SDL_UnlockTexture(texture);
-} else {
-  std::cerr << "Locking texture failed: " << SDL_GetError() << std::endl;
-  return;
-}*/
-
   auto surface = SDL_CreateRGBSurfaceFrom((void *)frameToDisplay.data(), width,
                                           heigth, 8, width, 0, 0, 0, 0);
 

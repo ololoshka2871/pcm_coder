@@ -1,18 +1,19 @@
 #include "samplestairsitherator.h"
 
 bool SampleStairsItherator::valid() const {
-  return (row >= 0) && (row < frame->heigth());
+  return (row >= 0) && (row < frame->dataHeigth());
 }
 
 bool SampleStairsItherator::lastItem() const {
-  return (row == frame->heigth() - 1) && (column == PCMFrame::L0_COLUMN_NUMBER);
+  return (row == frame->dataHeigth() - 1) &&
+         (column == PCMFrame::L0_COLUMN_NUMBER);
 }
 
 SampleStairsItherator SampleStairsItherator::wrap(PCMFrame &newframe) {
   return SampleStairsItherator{
       &newframe,
-      (row < 0) ? int32_t(newframe.heigth() + row) // wrap up
-                : int32_t(row - frame->heigth()),  // wrap down
+      (row < 0) ? int32_t(newframe.heigth() + row)    // wrap up
+                : int32_t(row - frame->dataHeigth()), // wrap down
       column};
 }
 

@@ -90,6 +90,11 @@ int main(int argc, char *argv[]) {
     if (true) {
       auto sdl2display = new SDL2DisplayConsumer();
       sdl2display->onClose([]() { terminate_flag = true; });
+      sdl2display->InitRenderer(
+          PCMFrame::PIXEL_WIDTH *
+              (FFmpegVideoCoder::PIXEL_WIDTH / PCMFrame::PIXEL_WIDTH),
+          PixelDuplicatorStage::FrameHeigth(options.pal, options.crop_top,
+                                            options.crop_bot));
       stage.NextConsumer(sdl2display);
     } else {
       stage.NextConsumer(new RPIFbDisplayConsumer());

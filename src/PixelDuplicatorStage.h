@@ -11,6 +11,9 @@ struct PixelDuplicatorStage : public AbstractprocessingStage<IFrame, IFrame> {
 
   void Ressive(const IFrame &source) override;
 
+  static int FrameHeigth(bool PAL = true, int32_t cut_top = 0,
+                         int32_t cut_bot = 0);
+
 private:
   int32_t cut_top, cut_bot;
 

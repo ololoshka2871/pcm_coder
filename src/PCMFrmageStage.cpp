@@ -74,7 +74,7 @@ void PCMFrmageStage::process_redy_frame() {
 }
 
 void PCMFrmageStage::generateCRC(std::unique_ptr<PCMFrame> &frame) {
-  for (auto line = 0; line < frame->heigth(); ++line) {
+  for (auto line = 0; line < frame->dataHeigth(); ++line) {
     auto pl = frame->getLine(line);
 
     if (!is14Bit) {

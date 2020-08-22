@@ -46,6 +46,7 @@ struct IFrame {
 
   virtual int32_t width() const { return m_width; }
   virtual int32_t heigth() const { return m_heigth; }
+  virtual int32_t dataHeigth() const { return m_heigth; }
 
   virtual bool Eof() const = 0;
 

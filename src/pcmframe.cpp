@@ -30,7 +30,7 @@ IFrame::PixelContainer PCMFrame::render(uint8_t grayLevel,
   // height / 2 - 1 -> 1
   // height / 2 - 0 -> 3
 
-  size_t height = heigth();
+  size_t height = dataHeigth();
   for (size_t dl = 0; dl < height; ++dl) {
     size_t l; // deinterlace destination
     if (dl < height / 2) {
@@ -60,6 +60,6 @@ const PCMLine *PCMFrame::getLine(size_t line_n) const {
   return &data.at(line_n);
 }
 
-int32_t PCMFrame::heigth() const {
+int32_t PCMFrame::dataHeigth() const {
   return IFrame::heigth() - HEADER_SIZE_LINES;
 }

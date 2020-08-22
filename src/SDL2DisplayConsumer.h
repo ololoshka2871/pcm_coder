@@ -22,6 +22,9 @@ struct SDL2DisplayConsumer : public IConsumer<IFrame> {
 
   void onClose(const std::function<void()> &cb);
 
+public:
+  void InitRenderer(int width, int heigth);
+
 private:
   std::function<void()> exit_cb;
 
@@ -34,8 +37,6 @@ private:
   int32_t width, heigth;
 
   void renderFrame(const std::vector<uint8_t> &frameToDisplay);
-  void writeTexture(const std::vector<uint8_t> &frameToDisplay, int pitch,
-                    uint8_t *pixels);
 };
 
 #endif // SDL2DISPLAYCONSUMER_H

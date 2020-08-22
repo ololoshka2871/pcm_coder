@@ -36,7 +36,7 @@ struct PCMFrame : public IFrame {
   PCMLine *getLine(size_t line_n);
   const PCMLine *getLine(size_t line_n) const;
 
-  int32_t heigth() const override;
+  int32_t dataHeigth() const override;
 
   bool Eof() const override { return false; }
 
