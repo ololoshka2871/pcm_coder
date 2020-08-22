@@ -24,9 +24,10 @@ void RPIFbDisplayConsumer::InitRenderer(int width, int heigth) {
 
 void RPIFbDisplayConsumer::renderFrame(const IFrame &frame) {
 #if 1
-  void *pixels = frame.render().pixels.data();
+  auto pixels = frame.render();
+  void *p = pixels.pixels.data();
 
-  auto surface = SDL_CreateRGBSurfaceFrom(pixels, frame.width(), heigth, 8,
+  auto surface = SDL_CreateRGBSurfaceFrom(p, frame.width(), heigth, 8,
                                           frame.width(), 0, 0, 0, 0);
 
   if (surface == nullptr) {

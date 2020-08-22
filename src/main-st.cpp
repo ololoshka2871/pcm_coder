@@ -84,12 +84,14 @@ int main(int argc, char *argv[]) {
     try {
       options.pal = SDL2DisplayConsumerBase::DetectPALNTSC();
 
-      const auto z = options.pal ? 0 : 0;
+      // mihail2501: для NTSC 24-26 строк (где-то между) для пал 34-36 строк
+      // точное значение надо на дидовьем :pcm:  замерить
+      const auto z = options.pal ? 25 : 35;
 
       std::cout << "Raspberry Pi playing mode detected: "
                 << options.formatsStr() << std::endl
                 << "For correct playing shift Visable Region up by " << z
-                << "lines!" << std::endl
+                << " lines!" << std::endl
                 << "Example: $ sudo fbshift +" << z << std::endl;
     } catch (...) {
       auto [w, h] = SDL2DisplayConsumerBase::getDisplaySize();
