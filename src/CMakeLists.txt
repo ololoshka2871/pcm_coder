@@ -71,6 +71,11 @@ set(SRC
 
     FFmpegVideoCoderConsumer.h
     FFmpegVideoCoderConsumer.cpp
+
+    Splitter.h
+
+    PlayerConsumer.h
+    PlayerConsumer.cpp
 )
 
 if (USE_PLAYER)

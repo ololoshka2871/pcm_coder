@@ -8,8 +8,8 @@
 
 #include "samplestairsitherator.h"
 
-struct PCMFrmageStage : public AbstractprocessingStage<PCMLine, IFrame> {
-  PCMFrmageStage(bool is14bit, bool generate_P, bool generate_Q,
+struct PCMFrameStage : public AbstractprocessingStage<PCMLine, IFrame> {
+  PCMFrameStage(bool is14bit, bool generate_P, bool generate_Q,
                  bool copy_protection, bool isPal);
 
   void Ressive(const PCMLine &line) override;

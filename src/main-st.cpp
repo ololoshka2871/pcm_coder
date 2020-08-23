@@ -14,8 +14,10 @@
 #include "LineGeneratorStage.h"
 #include "PCMFrmageStage.h"
 #include "PixelDuplicatorStage.h"
+#include "Splitter.h"
 
 #ifdef PLAYER
+#include "PlayerConsumer.h"
 #include "RPIFbDisplayConsumer.h"
 #include "SDL2DisplayConsumer.h"
 #endif
@@ -79,37 +81,61 @@ int main(int argc, char *argv[]) {
   audioprodusser.reader().dumpFileInfo(std::cout);
 
 #ifdef PLAYER
-  if (options.Play() && options.rpiMode) {
-    SDL2DisplayConsumerBase::VideoInit();
-    try {
-      options.pal = SDL2DisplayConsumerBase::DetectPALNTSC();
+  if (options.Play()) {
+    if (options.rpiMode) {
+      SDL2DisplayConsumerBase::VideoInit();
+      try {
+        options.pal = SDL2DisplayConsumerBase::DetectPALNTSC();
 
-      // mihail2501: для NTSC 24-26 строк (где-то между) для пал 34-36 строк
-      // точное значение надо на дидовьем :pcm:  замерить
-      const auto z = options.pal ? 25 : 35;
+        // mihail2501: для NTSC 24-26 строк (где-то между) для пал 34-36 строк
+        // точное значение надо на дидовьем :pcm:  замерить
+        const auto z = options.pal ? 25 : 35;
 
-      std::cout << "Raspberry Pi playing mode detected: "
-                << options.formatsStr() << std::endl
-                << "For correct playing shift Visable Region up by " << z
-                << " lines!" << std::endl
-                << "Example: $ sudo fbshift +" << z << std::endl;
-    } catch (...) {
-      auto [w, h] = SDL2DisplayConsumerBase::getDisplaySize();
-      std::cerr << "Failed to detect Raspberry Pi output mode! (" << w << "x"
-                << h << ")" << std::endl;
-      return 1;
+        std::cout << "Raspberry Pi playing mode detected: "
+                  << options.formatsStr() << std::endl
+                  << "For correct playing shift Visable Region up by " << z
+                  << " lines!" << std::endl
+                  << "Example: $ sudo fbshift +" << z << std::endl;
+      } catch (...) {
+        auto [w, h] = SDL2DisplayConsumerBase::getDisplaySize();
+        std::cerr << "Failed to detect Raspberry Pi output mode! (" << w << "x"
+                  << h << ")" << std::endl;
+        return 1;
+      }
+    } else {
+      if (PlayerConsumer::initSound() != 0) {
+        std::cerr << "Failed to initialise sound system!" << std::endl;
+        return 1;
+      }
     }
   }
 #endif
 
+  // --- working pipeline ---
+
+  Splitter<AudioProdusser::AudioPacket> *splitter = nullptr;
+  if (options.Play()) {
+#if PLAYER
+    splitter = new Splitter<AudioProdusser::AudioPacket>();
+    splitter->AddConsumer(new PlayerConsumer(0, 5));
+#endif
+  }
+
+  auto bitWidthConverter =
+      new BitWidthConverter{options.width14, options.use_dither};
+
+  auto &preparedSamples =
+      options.Play()
+          ? audioprodusser.NextStage(splitter).NextStage(bitWidthConverter)
+          : audioprodusser.NextStage(bitWidthConverter);
+
   auto &stage =
-      audioprodusser
-          .NextStage(new BitWidthConverter{options.width14, options.use_dither})
+      preparedSamples
           .NextStage(new LineGeneratorStage{options.width14, options.parity,
                                             options.generateQ()})
-          .NextStage(new PCMFrmageStage(options.width14, options.parity,
-                                        options.generateQ(),
-                                        options.copyProtection, options.pal));
+          .NextStage(new PCMFrameStage(options.width14, options.parity,
+                                       options.generateQ(),
+                                       options.copyProtection, options.pal));
 
   if (options.Play()) {
 #ifdef PLAYER
@@ -164,6 +190,12 @@ int main(int argc, char *argv[]) {
   }
 
   progressBar.done();
+
+#ifdef PLAYER
+  if (options.Play() && !options.rpiMode) {
+    PlayerConsumer::destroySound();
+  }
+#endif
 
   return 0;
 }

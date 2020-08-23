@@ -28,7 +28,7 @@ PCMLine buildHeaderLine(bool copy_protection, bool have_P, bool have_Q) {
   return res;
 }
 
-PCMFrmageStage::PCMFrmageStage(bool is14bit, bool generate_P, bool generate_Q,
+PCMFrameStage::PCMFrameStage(bool is14bit, bool generate_P, bool generate_Q,
                                bool copy_protection, bool isPal)
     : heigth{getHeigth(isPal)}, headerlune{buildHeaderLine(
                                     copy_protection, generate_P, generate_Q)},
@@ -36,7 +36,7 @@ PCMFrmageStage::PCMFrmageStage(bool is14bit, bool generate_P, bool generate_Q,
       nextFrame{std::make_unique<PCMFrame>(getHeigth(isPal), headerlune)},
       mainItherator{*currentFrame}, is14Bit{is14bit} {}
 
-void PCMFrmageStage::Ressive(const PCMLine &line) {
+void PCMFrameStage::Ressive(const PCMLine &line) {
   if (line.isEOF()) {
     process_redy_frame();
 
@@ -61,7 +61,7 @@ void PCMFrmageStage::Ressive(const PCMLine &line) {
   }
 }
 
-void PCMFrmageStage::process_redy_frame() {
+void PCMFrameStage::process_redy_frame() {
   std::unique_ptr<PCMFrame> processedFrame =
       std::make_unique<PCMFrame>(heigth, headerlune);
 
@@ -73,7 +73,7 @@ void PCMFrmageStage::process_redy_frame() {
   Send(*processedFrame);
 }
 
-void PCMFrmageStage::generateCRC(std::unique_ptr<PCMFrame> &frame) {
+void PCMFrameStage::generateCRC(std::unique_ptr<PCMFrame> &frame) {
   for (auto line = 0; line < frame->dataHeigth(); ++line) {
     auto pl = frame->getLine(line);
 
