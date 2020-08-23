@@ -82,7 +82,7 @@ static int play(Options &options) {
                   << options.formatsStr() << std::endl
                   << "For correct playing shift Visable Region up by " << z
                   << " lines!" << std::endl
-                  << "Example: $ sudo fbshift +" << z << std::endl;
+                  << "Example: $ sudo rpi-fb-shifter " << z << std::endl;
       } catch (...) {
         auto [w, h] = SDL2DisplayConsumerBase::getDisplaySize();
         std::cerr << "Failed to detect Raspberry Pi output mode! (" << w << "x"
@@ -101,7 +101,7 @@ static int play(Options &options) {
   // --- working pipeline ---
 
   Splitter<AudioProdusser::AudioPacket> *splitter = nullptr;
-  if (options.Play()) {
+  if (options.Play() && !options.rpiMode) {
 #if PLAYER
     splitter = new Splitter<AudioProdusser::AudioPacket>();
     splitter->AddConsumer(new PlayerConsumer(0, 2));
@@ -112,7 +112,7 @@ static int play(Options &options) {
       new BitWidthConverter{options.width14, options.use_dither};
 
   auto &preparedSamples =
-      options.Play()
+      (options.Play() && !options.rpiMode)
           ? audioprodusser.NextStage(splitter).NextStage(bitWidthConverter)
           : audioprodusser.NextStage(bitWidthConverter);
 

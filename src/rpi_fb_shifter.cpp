@@ -174,7 +174,7 @@ static int open_mem() {
   return fd;
 }
 
-static int try_configure(int fd, const Options &opts) {
+static void try_configure(int fd, const Options &opts) {
   volatile unsigned int *map_base;
 
   /* Map TV page */

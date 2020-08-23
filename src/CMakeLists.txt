@@ -97,7 +97,7 @@ if (USE_PLAYER)
 
 
     # https://github.com/zanac/OpenPB4/blob/master/RetroPie/EmulationStation/CMakeLists.txt
-    if(EXISTS "/opt/vc/include/bcm_host.h")
+    if(EXISTS "/opt/vc/include/bcm_host.h" OR TRUE)
         # ref: https://github.com/ali1234/raspi-teletext
         set(RPI_FB_SHIFTER_SRC
             rpi_fb_shifter.cpp)
