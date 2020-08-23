@@ -151,11 +151,11 @@ bool try_set_regs(volatile unsigned int *regs, const Options &options) {
 }
 
 static void configureArgumentParcer(CLI::App &app, Options &options) {
-  app.add_flag("-s,--shift", options.shift,
-               string_format("Shift up lines: (PAL=%d/NTSC=%d)",
-                             constants::PAL_SHIFT_DEFAULT,
-                             constants::NTSC_SHIFT_DEFAULT))
-      ->expected(0);
+  app.add_option("-s,--shift", options.shift,
+                 string_format("Shift up lines: (PAL=%d/NTSC=%d)",
+                               constants::PAL_SHIFT_DEFAULT,
+                               constants::NTSC_SHIFT_DEFAULT))
+      ->expected(1);
 
   app.add_option("command", options.command, "Control command (on/off)")
       ->expected(1)
@@ -220,10 +220,14 @@ int main(int argc, char **argv) {
   configureArgumentParcer(app, options);
   CLI11_PARSE(app, argc, argv);
 
-  auto mem = open_mem();
+  try {
+    auto mem = open_mem();
+    try_configure(mem, options);
+    close(mem);
 
-  try_configure(mem, options);
-
-  close(mem);
-  return 0;
+    return 0;
+  } catch (std::string ex) {
+    std::cerr << ex << std::endl;
+    return 1;
+  }
 }
