@@ -151,6 +151,12 @@ bool try_set_regs(volatile unsigned int *regs, const Options &options) {
 }
 
 static void configureArgumentParcer(CLI::App &app, Options &options) {
+  app.add_flag("-s,--shift", options.shift,
+               string_format("Shift up lines: (PAL=%d/NTSC=%d)",
+                             constants::PAL_SHIFT_DEFAULT,
+                             constants::NTSC_SHIFT_DEFAULT))
+      ->expected(0);
+
   app.add_option("command", options.command, "Control command (on/off)")
       ->expected(1)
       ->required()
@@ -159,10 +165,6 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
                    ? ""
                    : "only \"on\" or \"off\" values posible";
       });
-  app.add_flag("-s,--shift", options.shift,
-               string_format("Shift up lines: (PAL=%d/NTSC=%d)",
-                             constants::PAL_SHIFT_DEFAULT,
-                             constants::NTSC_SHIFT_DEFAULT));
 }
 
 static int open_mem() {

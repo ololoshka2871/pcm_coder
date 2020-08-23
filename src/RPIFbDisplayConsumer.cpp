@@ -30,8 +30,6 @@ void RPIFbDisplayConsumer::renderFrame(const IFrame &frame) {
   auto surface = SDL_CreateRGBSurfaceFrom(p, frame.width(), heigth, 8,
                                           frame.width(), 0, 0, 0, 0);
 
-  std::cout << surface->w << surface->h;
-
   if (surface == nullptr) {
     std::cerr << "SDL_CreateRGBSurfaceFrom: " << SDL_GetError() << std::endl;
     return;
