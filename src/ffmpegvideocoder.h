@@ -16,6 +16,7 @@ struct FFmpegVideoCoder : public IPCMFrameProcessingPolicy {
 
   void Init(size_t width, size_t heigth) override;
   void operator()(std::unique_ptr<IFrame> &frame) override;
+  void operator()(const IFrame &frame);
   void finish() override;
 
 private:

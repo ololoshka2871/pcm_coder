@@ -23,8 +23,14 @@ void FFmpegVideoCoder::Init(size_t width, size_t heigth) {
 
 void FFmpegVideoCoder::operator()(std::unique_ptr<IFrame> &frame) {
   if (encoder != nullptr) {
-    encoder->encode_frame(frame->render().pixels.data());
+    auto pixels = frame->render();
+    encoder->encode_frame(pixels.pixels.data());
   }
+}
+
+void FFmpegVideoCoder::operator()(const IFrame &frame) {
+  auto pixels = frame.render();
+  encoder->encode_frame(pixels.pixels.data());
 }
 
 void FFmpegVideoCoder::finish() { encoder.reset(); }

@@ -134,7 +134,8 @@ int main(int argc, char *argv[]) {
         .NextStage(new PixelDuplicatorStage(
             options.pal, options.crop_top, options.crop_bot,
             FFmpegVideoCoder::PIXEL_WIDTH / PCMFrame::PIXEL_WIDTH))
-        .NextConsumer(new FFmpegVideoCoderConsumer());
+        .NextConsumer(new FFmpegVideoCoderConsumer(
+            options.OutputFile, options.codec, options.bitrate, options.pal));
   }
 
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
