@@ -60,22 +60,7 @@ static progresscpp::ProgressBar initProgressBar(uint32_t limit) {
   return progresscpp::ProgressBar{limit, static_cast<uint32_t>(cols - 20)};
 }
 
-int main(int argc, char *argv[]) {
-  configure_ctrlc_listener(terminate_flag);
-
-  Options options;
-
-  {
-    auto ret = parseArguments(argc, argv, options);
-    if (ret) {
-      return ret;
-    }
-  }
-
-  options.dump(std::cout);
-
-  separator(std::cout);
-
+static int play(Options &options) {
   AudioProdusser audioprodusser{options.InputFile};
 
   audioprodusser.reader().dumpFileInfo(std::cout);
@@ -117,7 +102,7 @@ int main(int argc, char *argv[]) {
   if (options.Play()) {
 #if PLAYER
     splitter = new Splitter<AudioProdusser::AudioPacket>();
-    splitter->AddConsumer(new PlayerConsumer(0, 5));
+    splitter->AddConsumer(new PlayerConsumer(0, 2));
 #endif
   }
 
@@ -191,11 +176,32 @@ int main(int argc, char *argv[]) {
 
   progressBar.done();
 
+  return 0;
+}
+
+int main(int argc, char *argv[]) {
+  configure_ctrlc_listener(terminate_flag);
+
+  Options options;
+
+  {
+    auto ret = parseArguments(argc, argv, options);
+    if (ret) {
+      return ret;
+    }
+  }
+
+  options.dump(std::cout);
+
+  separator(std::cout);
+
+  auto ret = play(options);
+
 #ifdef PLAYER
   if (options.Play() && !options.rpiMode) {
     PlayerConsumer::destroySound();
   }
 #endif
 
-  return 0;
+  return ret;
 }
