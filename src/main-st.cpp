@@ -82,7 +82,8 @@ static int play(Options &options) {
                   << options.formatsStr() << std::endl
                   << "For correct playing shift Visable Region up by " << z
                   << " lines!" << std::endl
-                  << "Example: $ sudo rpi-fb-shifter " << z << std::endl;
+                  << "Example: $ sudo rpi-fb-shifter -s " << z << " on"
+                  << std::endl;
       } catch (...) {
         auto [w, h] = SDL2DisplayConsumerBase::getDisplaySize();
         std::cerr << "Failed to detect Raspberry Pi output mode! (" << w << "x"

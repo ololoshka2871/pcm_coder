@@ -171,7 +171,7 @@ static int open_mem() {
   int fd = open("/dev/mem", O_RDWR | O_SYNC);
 
   if (fd == -1) {
-    throw std::string("Error opening /dev/mem. Are you forget sudo?\n");
+    throw std::string("Error opening /dev/mem. Are you forget sudo?");
   }
   return fd;
 }
@@ -184,7 +184,7 @@ static void try_configure(int fd, const Options &opts) {
       mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0x20807000));
 
   if (map_base == (void *)-1) {
-    throw std::string("Error mapping register memory 0x20807000.\n");
+    throw std::string("Error mapping register memory 0x20807000.");
   }
 
   if (!try_set_regs(map_base, opts)) {
@@ -193,7 +193,7 @@ static void try_configure(int fd, const Options &opts) {
         mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0x3f807000));
 
     if (map_base == (void *)-1) {
-      throw std::string("Error mapping register memory 0x3f807000.\n");
+      throw std::string("Error mapping register memory 0x3f807000.");
     }
 
     if (!try_set_regs(map_base, opts)) {
@@ -202,12 +202,12 @@ static void try_configure(int fd, const Options &opts) {
           0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0xfec12000));
 
       if (map_base == (void *)-1) {
-        throw std::string("Error mapping register memory 0xfec12000.\n");
+        throw std::string("Error mapping register memory 0xfec12000.");
       }
 
       if (!try_set_regs(map_base, opts)) {
-        fprintf(stderr, "Could not find registers. Make sure composite video "
-                        "out is enabled.\n");
+        throw std::string("Could not find registers. Make sure composite video "
+                          "out is enabled.");
       }
     }
   }
