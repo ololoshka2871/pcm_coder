@@ -20,6 +20,8 @@
 #include "PlayerConsumer.h"
 #include "RPIFbDisplayConsumer.h"
 #include "SDL2DisplayConsumer.h"
+
+#include "constants.h"
 #endif
 
 #include "ffmpegvideocoder.h"
@@ -74,7 +76,7 @@ static int play(Options &options) {
 
         // mihail2501: для NTSC 24-26 строк (где-то между) для пал 34-36 строк
         // точное значение надо на дидовьем :pcm:  замерить
-        const auto z = options.pal ? 25 : 35;
+        const auto z = constants::getDefaultShift(options.pal);
 
         std::cout << "Raspberry Pi playing mode detected: "
                   << options.formatsStr() << std::endl

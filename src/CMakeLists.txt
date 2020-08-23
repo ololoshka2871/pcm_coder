@@ -94,6 +94,53 @@ if (USE_PLAYER)
     )
 
     set_property(TARGET playlib PROPERTY CXX_STANDARD ${CPP_STD})
+
+
+    # https://github.com/zanac/OpenPB4/blob/master/RetroPie/EmulationStation/CMakeLists.txt
+    if(EXISTS "/opt/vc/include/bcm_host.h")
+        # ref: https://github.com/ali1234/raspi-teletext
+        set(RPI_FB_SHIFTER_SRC
+            rpi_fb_shifter.cpp)
+
+        add_executable(rpi-fb-shifter rpi_fb_shifter.cpp)
+
+        set_property(TARGET rpi-fb-shifter PROPERTY CXX_STANDARD ${CPP_STD})
+        target_compile_definitions(rpi-fb-shifter
+            PUBLIC
+                -DSTANDALONE
+                -D__STDC_CONSTANT_MACROS
+                -D__STDC_LIMIT_MACROS
+                -DTARGET_POSIX
+                -D_LINUX
+                -DPIC
+                -D_REENTRANT
+                -D_LARGEFILE64_SOURCE
+                -D_FILE_OFFSET_BITS=64
+                -DHAVE_LIBOPENMAX=2
+                -DOMX
+                -DOMX_SKIP64BIT
+                -DUSE_EXTERNAL_OMX
+                -DHAVE_LIBBCM_HOST
+                -DUSE_EXTERNAL_LIBBCM_HOST
+                -DUSE_VCHIQ_ARM
+        )
+        target_include_directories(rpi-fb-shifter
+            PUBLIC
+                /opt/vc/include
+                /opt/vc/include/interface/vcos
+                /opt/vc/include/interface/vmcs_host/linux
+                /opt/vc/include/interface/vcos/pthreads
+         )
+        target_link_directories(rpi-fb-shifter
+            PUBLIC
+                /opt/vc/lib
+        )
+        target_link_libraries(rpi-fb-shifter
+            PUBLIC
+                bcm_host
+                CLI11
+        )
+    endif()
 endif()
 
 add_executable(${PROJECT_NAME} main-st.cpp)
