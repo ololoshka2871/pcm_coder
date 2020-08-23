@@ -1,7 +1,6 @@
 #ifndef SPLITTER_H
 #define SPLITTER_H
 
-#include <algorithm>
 #include <list>
 
 #include "abstractprocessingstage.h"

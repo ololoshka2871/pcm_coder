@@ -1,9 +1,6 @@
 #ifndef SAMPLESTAIRSITHERATOR_H
 #define SAMPLESTAIRSITHERATOR_H
 
-#include <cstddef>
-#include <iterator>
-
 #include "pcmframe.h"
 
 struct SampleStairsItherator {

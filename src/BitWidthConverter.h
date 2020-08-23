@@ -5,8 +5,6 @@
 
 #include "AudioProdusser.h"
 
-#include "samplegenerator.h"
-
 #include "samplespack.h"
 
 struct BitWidthConverter
@@ -17,7 +15,8 @@ struct BitWidthConverter
   void Ressive(const AudioProdusser::AudioPacket &audiopacket) override;
 
 private:
-  SampleGenerator generator;
+  struct Context;
+  std::unique_ptr<Context> ctx;
 };
 
 #endif // BITWIDTHCONVERTER_H

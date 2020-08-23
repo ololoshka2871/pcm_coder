@@ -1,7 +1,15 @@
+#include "samplegenerator.h"
+
 #include "BitWidthConverter.h"
 
+struct BitWidthConverter::Context {
+  Context(bool is_14_bit, bool use_dither) : generator{is_14_bit, use_dither} {}
+
+  SampleGenerator generator;
+};
+
 BitWidthConverter::BitWidthConverter(bool is_14_bit, bool use_dither)
-    : generator{is_14_bit, use_dither} {}
+    : ctx{std::make_unique<Context>(is_14_bit, use_dither)} {}
 
 void BitWidthConverter::Ressive(
     const AudioProdusser::AudioPacket &audiopacket) {
@@ -10,5 +18,5 @@ void BitWidthConverter::Ressive(
     return;
   }
   Send(SamplesPack{
-      generator.convert(audiopacket.audio_data, audiopacket.frames_read)});
+      ctx->generator.convert(audiopacket.audio_data, audiopacket.frames_read)});
 }
