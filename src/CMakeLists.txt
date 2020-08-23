@@ -105,6 +105,10 @@ if (USE_PLAYER)
         add_executable(rpi-fb-shifter rpi_fb_shifter.cpp)
 
         set_property(TARGET rpi-fb-shifter PROPERTY CXX_STANDARD ${CPP_STD})
+        target_link_libraries(rpi-fb-shifter
+            PUBLIC
+                CLI11
+        )
     endif()
 endif()
 
