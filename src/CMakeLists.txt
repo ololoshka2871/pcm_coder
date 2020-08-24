@@ -99,9 +99,6 @@ if (USE_PLAYER)
     # https://github.com/zanac/OpenPB4/blob/master/RetroPie/EmulationStation/CMakeLists.txt
     if(EXISTS "/opt/vc/include/bcm_host.h")
         # ref: https://github.com/ali1234/raspi-teletext
-        set(RPI_FB_SHIFTER_SRC
-            rpi_fb_shifter.cpp)
-
         add_executable(rpi-fb-shifter rpi_fb_shifter.cpp)
 
         set_property(TARGET rpi-fb-shifter PROPERTY CXX_STANDARD ${CPP_STD})
@@ -109,6 +106,7 @@ if (USE_PLAYER)
             PUBLIC
                 CLI11
         )
+        install(TARGETS rpi-fb-shifter)
     endif()
 endif()
 
