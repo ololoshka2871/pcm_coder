@@ -92,17 +92,9 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
       ->needs(output)
       ->needs(codec_opt);
   newOption(app, "--crop-top", options.crop_top,
-            "Crop N lines from TOP of frame.")
-#ifdef PLAYER
-      ->excludes(rpi_mode)
-#endif
-      ;
+            "Crop N lines from TOP of frame.");
   newOption(app, "--crop-bot", options.crop_bot,
-            "Crop N lines from BOTTOM of frame.")
-#ifdef PLAYER
-      ->excludes(rpi_mode)
-#endif
-      ;
+            "Crop N lines from BOTTOM of frame.");
 }
 
 void Options::dump(std::ostream &os) const {

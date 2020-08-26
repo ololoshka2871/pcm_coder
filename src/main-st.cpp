@@ -141,7 +141,10 @@ static int play(Options &options) {
                                             options.crop_bot));
     }
     display->onClose([]() { terminate_flag = true; });
-    stage.NextConsumer(display);
+    stage
+        .NextStage(new PixelDuplicatorStage(options.pal, options.crop_top,
+                                            options.crop_bot, 1))
+        .NextConsumer(display);
 #endif
   } else {
     stage
