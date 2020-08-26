@@ -72,30 +72,6 @@ target_link_libraries(common
 )
 
 if (USE_PLAYER)
-    set(PLAY_LIN_SRC
-        PlayerConsumer.h
-        PlayerConsumer.cpp
-
-        SDL2DisplayConsumerBase.h
-        SDL2DisplayConsumerBase.cpp
-
-        SDL2DisplayConsumer.h
-        SDL2DisplayConsumer.cpp
-
-        RPIFbDisplayConsumer.h
-        RPIFbDisplayConsumer.cpp
-    )
-    add_library(playlib STATIC ${PLAY_LIN_SRC})
-
-    target_link_libraries(playlib
-        PUBLIC
-            PlayerWriter
-            pcm_utils
-    )
-
-    set_property(TARGET playlib PROPERTY CXX_STANDARD ${CPP_STD})
-
-
     # https://github.com/zanac/OpenPB4/blob/master/RetroPie/EmulationStation/CMakeLists.txt
     if(EXISTS "/opt/vc/include/bcm_host.h")
         # ref: https://github.com/ali1234/raspi-teletext
@@ -107,7 +83,55 @@ if (USE_PLAYER)
                 CLI11
         )
         install(TARGETS rpi-fb-shifter)
+
+        SET(RPI ON)
     endif()
+
+    set(PLAY_LIN_SRC
+        PlayerConsumer.h
+        PlayerConsumer.cpp
+
+        SDL2DisplayConsumerBase.h
+        SDL2DisplayConsumerBase.cpp
+
+        SDL2DisplayConsumer.h
+        SDL2DisplayConsumer.cpp
+    )
+
+    if (RPI)
+        list(APPEND PLAY_LIN_SRC
+            RPIFbDisplayConsumer.h
+            RPIFbDisplayConsumer.cpp
+        )
+    endif()
+
+    add_library(playlib STATIC ${PLAY_LIN_SRC})
+
+    target_link_libraries(playlib
+        PUBLIC
+            PlayerWriter
+            pcm_utils
+    )
+
+    if (RPI)
+        target_compile_definitions(playlib
+            PUBLIC
+                -DRPI
+        )
+        target_include_directories(playlib
+            PRIVATE
+                "/opt/vc/include"
+        )
+        target_link_libraries(playlib
+            PUBLIC
+                -L/opt/vc/lib/ -lbcm_host
+        )
+    endif()
+
+    set_property(TARGET playlib PROPERTY CXX_STANDARD ${CPP_STD})
+
+
+
 endif()
 
 add_executable(${PROJECT_NAME} main-st.cpp)

@@ -1,6 +1,18 @@
+#include <condition_variable>
 #include <iostream>
+#include <mutex>
+
+#include "bcm_host.h"
 
 #include "RPIFbDisplayConsumer.h"
+
+struct RPIFbDisplayConsumer::Context {
+  Context() {}
+
+  DISPMANX_DISPLAY_HANDLE_T display;
+  std::mutex mutex;
+  std::condition_variable cv;
+};
 
 void RPIFbDisplayConsumer::InitRenderer(int width, int heigth) {
   this->width = width;
@@ -19,7 +31,22 @@ void RPIFbDisplayConsumer::InitRenderer(int width, int heigth) {
     throw 0;
   }
 
-  // TODO init vsync
+  ctx->display = vc_dispmanx_display_open(0);
+
+  // BUG: Clear any existing callbacks, even to other apps.
+  // https://github.com/raspberrypi/userland/issues/218
+  // TODO: Check if we still need this.
+  vc_dispmanx_vsync_callback(ctx->display, NULL, NULL);
+
+  // Set the callback function.
+  vc_dispmanx_vsync_callback(ctx->display, vsync_callback, this);
+}
+
+RPIFbDisplayConsumer::RPIFbDisplayConsumer()
+    : ctx{std::make_unique<Context>()} {}
+
+RPIFbDisplayConsumer::~RPIFbDisplayConsumer() {
+  vc_dispmanx_vsync_callback(ctx->display, NULL, NULL);
 }
 
 void RPIFbDisplayConsumer::renderFrame(const IFrame &frame) {
@@ -44,14 +71,24 @@ void RPIFbDisplayConsumer::renderFrame(const IFrame &frame) {
   SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
   SDL_FreeSurface(surface);
 
-  SDL_RenderClear(renderer);
-  auto res = SDL_RenderCopy(renderer, texture, nullptr, nullptr);
-  if (res != 0) {
-    std::cerr << "SDL_RenderCopy: " << res << std::endl;
-    return;
-  }
-  SDL_RenderPresent(renderer);
+  {
+    std::unique_lock<std::mutex> lk(ctx->mutex);
+    ctx->cv.wait(lk);
 
-  SDL_DestroyTexture(texture);
+    SDL_RenderClear(renderer);
+    auto res = SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+    if (res != 0) {
+      std::cerr << "SDL_RenderCopy: " << res << std::endl;
+      return;
+    }
+    SDL_RenderPresent(renderer);
+
+    SDL_DestroyTexture(texture);
+  }
 #endif
+}
+
+void RPIFbDisplayConsumer::vsync_callback(DISPMANX_UPDATE_HANDLE_T u,
+                                          void *anon_render_shared) {
+  static_cast<RPIFbDisplayConsumer *>(anon_render_shared)->ctx->cv.notify_one();
 }

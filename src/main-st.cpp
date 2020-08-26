@@ -18,11 +18,15 @@
 
 #ifdef PLAYER
 #include "PlayerConsumer.h"
-#include "RPIFbDisplayConsumer.h"
 #include "SDL2DisplayConsumer.h"
 
-#include "constants.h"
+#ifdef RPI
+#include "RPIFbDisplayConsumer.h"
 #endif
+
+#endif
+
+#include "constants.h"
 
 #include "ffmpegvideocoder.h"
 
@@ -79,11 +83,13 @@ static int play(Options &options) {
         const auto z = constants::getDefaultShift(options.pal);
 
         std::cout << "Raspberry Pi playing mode detected: "
-                  << options.formatsStr() << std::endl
+                  << options.formatsStr() << std::endl;
+        /*
                   << "For correct playing shift Visable Region up by " << z
                   << " lines!" << std::endl
                   << "Example: $ sudo rpi-fb-shifter -s " << z << " on"
                   << std::endl;
+        */
       } catch (...) {
         auto [w, h] = SDL2DisplayConsumerBase::getDisplaySize();
         std::cerr << "Failed to detect Raspberry Pi output mode! (" << w << "x"
@@ -129,10 +135,15 @@ static int play(Options &options) {
 #ifdef PLAYER
     SDL2DisplayConsumerBase *display;
     if (options.rpiMode) {
+#ifdef RPI
       display = new RPIFbDisplayConsumer();
       std::apply(
           [&display](auto &&... args) { display->InitRenderer(args...); },
           SDL2DisplayConsumer::getDisplaySize());
+#else
+      std::cerr << "No Raspberry Pi support compiled!" << std::endl;
+      return 1;
+#endif
     } else {
       display = new SDL2DisplayConsumer();
       display->InitRenderer(
@@ -142,8 +153,10 @@ static int play(Options &options) {
     }
     display->onClose([]() { terminate_flag = true; });
     stage
-        .NextStage(new PixelDuplicatorStage(options.pal, options.crop_top,
-                                            options.crop_bot, 1))
+        /*
+    .NextStage(new PixelDuplicatorStage(options.pal, options.crop_top,
+                                        options.crop_bot, 1))
+                                                */
         .NextConsumer(display);
 #endif
   } else {
