@@ -153,10 +153,8 @@ static int play(Options &options) {
     }
     display->onClose([]() { terminate_flag = true; });
     stage
-        /*
-    .NextStage(new PixelDuplicatorStage(options.pal, options.crop_top,
-                                        options.crop_bot, 1))
-                                                */
+        .NextStage(new PixelDuplicatorStage(options.pal, options.crop_top,
+                                            options.crop_bot, 1))
         .NextConsumer(display);
 #endif
   } else {

@@ -12,6 +12,7 @@ struct RPIFbDisplayConsumer::Context {
   DISPMANX_DISPLAY_HANDLE_T display;
   std::mutex mutex;
   std::condition_variable cv;
+  bool vsync_div = false;
 };
 
 void RPIFbDisplayConsumer::InitRenderer(int width, int heigth) {
@@ -90,5 +91,8 @@ void RPIFbDisplayConsumer::renderFrame(const IFrame &frame) {
 
 void RPIFbDisplayConsumer::vsync_callback(DISPMANX_UPDATE_HANDLE_T u,
                                           void *anon_render_shared) {
-  static_cast<RPIFbDisplayConsumer *>(anon_render_shared)->ctx->cv.notify_one();
+  auto _this = static_cast<RPIFbDisplayConsumer *>(anon_render_shared);
+  if (_this->ctx->vsync_div ^= true) {
+    _this->ctx->cv.notify_one();
+  }
 }
