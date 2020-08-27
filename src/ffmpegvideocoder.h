@@ -2,6 +2,7 @@
 #define FFMPEGVIDEOCODER_H
 
 #include <memory>
+#include <string>
 
 #include "ipcmframeprocessingpolicy.h"
 

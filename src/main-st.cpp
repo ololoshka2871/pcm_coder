@@ -108,7 +108,11 @@ static int play(Options &options) {
   // --- working pipeline ---
 
   Splitter<AudioProdusser::AudioPacket> *splitter = nullptr;
-  if (options.Play() && !options.rpiMode) {
+  if (options.Play()
+#if RPI
+      && !options.rpiMode
+#endif
+      ) {
 #if PLAYER
     splitter = new Splitter<AudioProdusser::AudioPacket>();
     splitter->AddConsumer(new PlayerConsumer(0, 2));
@@ -119,7 +123,11 @@ static int play(Options &options) {
       new BitWidthConverter{options.width14, options.use_dither};
 
   auto &preparedSamples =
-      (options.Play() && !options.rpiMode)
+      (options.Play()
+#if RPI
+          && !options.rpiMode
+#endif
+          )
           ? audioprodusser.NextStage(splitter).NextStage(bitWidthConverter)
           : audioprodusser.NextStage(bitWidthConverter);
 

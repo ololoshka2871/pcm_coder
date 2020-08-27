@@ -60,6 +60,11 @@ set_target_properties(SDL2 PROPERTIES IMPORTED_LOCATION_RELEASE ${sdl2_install_d
 set_target_properties(SDL2 PROPERTIES IMPORTED_LOCATION_DEBUG ${sdl2_install_dir}/lib/SDL2d${CMAKE_STATIC_LIBRARY_SUFFIX})
 add_dependencies(SDL2 sdl2)
 
+add_library(SDL2main STATIC IMPORTED)
+set_target_properties(SDL2main PROPERTIES IMPORTED_LOCATION_RELEASE ${sdl2_install_dir}/lib/SDL2main${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_target_properties(SDL2main PROPERTIES IMPORTED_LOCATION_DEBUG ${sdl2_install_dir}/lib/SDL2main${CMAKE_STATIC_LIBRARY_SUFFIX})
+add_dependencies(SDL2main sdl2)
+
 ExternalProject_Get_Property(project_portaudio install_dir)
 
 set(portaudio_install_dir ${install_dir})
@@ -74,14 +79,21 @@ add_library(Portaudio STATIC IMPORTED)
 set_target_properties(Portaudio PROPERTIES IMPORTED_LOCATION ${portaudio_install_dir}/lib/${portaudio_libName})
 add_dependencies(Portaudio project_portaudio)
 
-set(ADD_LIBS SDL2 Portaudio)
-set(ADD_INCLUDES_PATHS 
-	${sdl2_install_dir}/include
-	${portaudio_install_dir}/include
-)
+#set(ADD_LIBS SDL2 Portaudio)
+#set(ADD_INCLUDES_PATHS 
+#	${sdl2_install_dir}/include
+#	${portaudio_install_dir}/include
+#)
+
+set(PORTAUDIO_INCLUDE_DIRS ${portaudio_install_dir}/include)
+set(PORTAUDIO_LIBRARIES Portaudio)
 
 set(SDL2_FOUND TRUE)
 set(PORTAUDIO_FOUND TRUE)
+set(PORTAUDIO_VERSION 19)
+
+add_library(SDL2::SDL2main ALIAS SDL2main)
+add_library(SDL2::SDL2 ALIAS SDL2)
 
 else()
 
@@ -92,6 +104,7 @@ endif()
 
 set(PlayerWriter_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pcm_utils/PlayerWriter)
 
+
 if ((SDL2_FOUND) AND (PORTAUDIO_FOUND) AND (PORTAUDIO_VERSION EQUAL 19))
     set(ADD_LIBS ${PORTAUDIO_LIBRARIES})
     set(ADD_INCLUDES_PATHS ${PORTAUDIO_INCLUDE_DIRS})
@@ -101,8 +114,6 @@ if ((SDL2_FOUND) AND (PORTAUDIO_FOUND) AND (PORTAUDIO_VERSION EQUAL 19))
     else()
     	list(APPEND ADD_LIBS SDL2::SDL2main SDL2::SDL2)
     endif()
-    
-    message(STATUS "Include: " ${ADD_INCLUDES_PATHS})
     
     set(PlayerWriter_SRC
         ${PlayerWriter_DIR}/player.cpp

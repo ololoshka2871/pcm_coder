@@ -125,7 +125,7 @@ void Options::dump(std::ostream &os) const {
   }
   os << "\tUse dither: " << printBool(width14 ? use_dither : false) << endl;
 
-  if ((crop_top || crop_bot) && !rpiMode) {
+  if ((crop_top || crop_bot)) {
     os << "\tCrop video top=" << crop_top << ", bot=" << crop_bot << endl;
   }
   if (codec != uncompresed) {
