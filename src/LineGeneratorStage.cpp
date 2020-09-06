@@ -20,27 +20,26 @@ void LineGeneratorStage::Ressive(const SamplesPack &samples) {
   write_overflow(itl);
 
   auto start = samples.data.cbegin();
-  auto ovf_count = samples.data.size() % PCMLine::TotalDataLRSamples;
+  auto ovf_count = (samples.data.size() + overflow.size()) % PCMLine::TotalDataLRSamples;
   auto end = samples.data.end() - ovf_count;
 
   overflow.assign(end, samples.data.end()); // replace overflow
 
   for (auto it = start; it != end; ++it) { // it - итератор пары
-    if (itl == itl_data_end) {
-      if (generateP) {
-        *itl = line.generateP();
-      }
-      ++itl;
-      if (generateQ && mode14Bit) // skip generate Q if 16 bit mode
-      {
-        *itl = line.generateQ();
-      }
-
-      Send(line);
-
-      itl = line_start;
-    }
-
     write_sample(itl, *it);
+
+    if (itl == itl_data_end) {
+        if (generateP) {
+            *itl = line.generateP();
+        }
+        ++itl;
+        if (generateQ && mode14Bit) // skip generate Q if 16 bit mode
+        {
+            *itl = line.generateQ();
+        }
+        Send(line);
+
+        itl = line_start;
+    }
   }
 }
