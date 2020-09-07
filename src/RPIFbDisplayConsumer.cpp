@@ -23,6 +23,8 @@ void RPIFbDisplayConsumer::InitRenderer(int width, int heigth) {
       SDL_CreateWindow("PCM", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                        width, heigth, SDL_WINDOW_BORDERLESS);
 
+  SDL_ShowCursor(SDL_DISABLE);
+
   renderer = SDL_CreateRenderer(
       window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
