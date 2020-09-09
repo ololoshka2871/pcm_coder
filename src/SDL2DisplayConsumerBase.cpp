@@ -14,6 +14,7 @@ void SDL2DisplayConsumerBase::buildGrayscalePalete() {
     for (int i = 0; i < palete_size; i++) {
       palete->colors[i].r = palete->colors[i].g = palete->colors[i].b = i;
     }
+    //palete->colors[0].r = 0xff;
   }
 }
 

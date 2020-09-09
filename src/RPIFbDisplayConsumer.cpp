@@ -20,8 +20,7 @@ void RPIFbDisplayConsumer::InitRenderer(int width, int heigth) {
   this->heigth = heigth;
 
   window =
-      SDL_CreateWindow("PCM", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                       width, heigth, SDL_WINDOW_BORDERLESS);
+      SDL_CreateWindow("PCM", 0, 0, 0, 0, SDL_WINDOW_BORDERLESS|SDL_WINDOW_FULLSCREEN);
 
   SDL_ShowCursor(SDL_DISABLE);
 
@@ -53,7 +52,6 @@ RPIFbDisplayConsumer::~RPIFbDisplayConsumer() {
 }
 
 void RPIFbDisplayConsumer::renderFrame(const IFrame &frame) {
-#if 1
   auto pixels = frame.render();
   void *p = pixels.pixels.data();
 
@@ -75,11 +73,12 @@ void RPIFbDisplayConsumer::renderFrame(const IFrame &frame) {
   SDL_FreeSurface(surface);
 
   {
+    SDL_Rect dest{12, 0, width - 10, heigth};
     std::unique_lock<std::mutex> lk(ctx->mutex);
     ctx->cv.wait(lk);
 
     SDL_RenderClear(renderer);
-    auto res = SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+    auto res = SDL_RenderCopy(renderer, texture, nullptr, &dest);
     if (res != 0) {
       std::cerr << "SDL_RenderCopy: " << res << std::endl;
       return;
@@ -88,13 +87,13 @@ void RPIFbDisplayConsumer::renderFrame(const IFrame &frame) {
 
     SDL_DestroyTexture(texture);
   }
-#endif
 }
 
 void RPIFbDisplayConsumer::vsync_callback(DISPMANX_UPDATE_HANDLE_T u,
                                           void *anon_render_shared) {
   auto _this = static_cast<RPIFbDisplayConsumer *>(anon_render_shared);
   if (_this->ctx->vsync_div ^= true) {
+    usleep(2000);
     _this->ctx->cv.notify_one();
   }
 }
