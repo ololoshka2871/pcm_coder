@@ -7,11 +7,17 @@
 #include "RPIFbDisplayConsumer.h"
 
 struct RPIFbDisplayConsumer::Context {
-  Context() {}
+  Context(int vsync_delay, int left_offset, int right_offset, int heigth_mod)
+      : vsync_delay{vsync_delay}, left_offset{left_offset},
+        right_offset{right_offset}, heigth_mod{heigth_mod} {}
 
   DISPMANX_DISPLAY_HANDLE_T display;
   std::mutex mutex;
   std::condition_variable cv;
+  int vsync_delay;
+
+  int left_offset, right_offset, heigth_mod;
+
   bool vsync_div = false;
 };
 
@@ -20,7 +26,8 @@ void RPIFbDisplayConsumer::InitRenderer(int width, int heigth) {
   this->heigth = heigth;
 
   window =
-      SDL_CreateWindow("PCM", 0, 0, 0, 0, SDL_WINDOW_BORDERLESS|SDL_WINDOW_FULLSCREEN);
+      SDL_CreateWindow("PCM", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                       width, heigth, SDL_WINDOW_BORDERLESS);
 
   SDL_ShowCursor(SDL_DISABLE);
 
@@ -44,8 +51,10 @@ void RPIFbDisplayConsumer::InitRenderer(int width, int heigth) {
   vc_dispmanx_vsync_callback(ctx->display, vsync_callback, this);
 }
 
-RPIFbDisplayConsumer::RPIFbDisplayConsumer()
-    : ctx{std::make_unique<Context>()} {}
+RPIFbDisplayConsumer::RPIFbDisplayConsumer(int vsync_delay, int left_offset,
+                                           int right_offset, int heigth_mod)
+    : ctx{std::make_unique<Context>(vsync_delay, left_offset, right_offset,
+                                    heigth_mod)} {}
 
 RPIFbDisplayConsumer::~RPIFbDisplayConsumer() {
   vc_dispmanx_vsync_callback(ctx->display, NULL, NULL);
@@ -73,7 +82,9 @@ void RPIFbDisplayConsumer::renderFrame(const IFrame &frame) {
   SDL_FreeSurface(surface);
 
   {
-    SDL_Rect dest{12, 0, width - 10, heigth};
+    SDL_Rect dest{ctx->left_offset, 0, width - ctx->right_offset,
+                  heigth + ctx->heigth_mod};
+
     std::unique_lock<std::mutex> lk(ctx->mutex);
     ctx->cv.wait(lk);
 
@@ -93,7 +104,7 @@ void RPIFbDisplayConsumer::vsync_callback(DISPMANX_UPDATE_HANDLE_T u,
                                           void *anon_render_shared) {
   auto _this = static_cast<RPIFbDisplayConsumer *>(anon_render_shared);
   if (_this->ctx->vsync_div ^= true) {
-    usleep(2000);
+    usleep(_this->ctx->vsync_delay);
     _this->ctx->cv.notify_one();
   }
 }

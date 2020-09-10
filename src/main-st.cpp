@@ -112,7 +112,7 @@ static int play(Options &options) {
 #if RPI
       && !options.rpiMode
 #endif
-      ) {
+  ) {
 #if PLAYER
     splitter = new Splitter<AudioProdusser::AudioPacket>();
     splitter->AddConsumer(new PlayerConsumer(0, 2));
@@ -125,9 +125,9 @@ static int play(Options &options) {
   auto &preparedSamples =
       (options.Play()
 #if RPI
-          && !options.rpiMode
+       && !options.rpiMode
 #endif
-          )
+       )
           ? audioprodusser.NextStage(splitter).NextStage(bitWidthConverter)
           : audioprodusser.NextStage(bitWidthConverter);
 
@@ -144,7 +144,9 @@ static int play(Options &options) {
     SDL2DisplayConsumerBase *display;
     if (options.rpiMode) {
 #ifdef RPI
-      display = new RPIFbDisplayConsumer();
+      display = new RPIFbDisplayConsumer(
+          options.Rpi_vsync_delay, options.Rpi_left_offset,
+          options.Rpi_right_offset, options.Rpi_heigth_mod);
       std::apply(
           [&display](auto &&... args) { display->InitRenderer(args...); },
           SDL2DisplayConsumer::getDisplaySize());

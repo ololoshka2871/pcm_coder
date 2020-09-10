@@ -28,6 +28,13 @@ struct Options {
   std::string InputFile;
   std::string OutputFile;
 
+#ifdef RPI
+  int Rpi_vsync_delay = 2000;
+  int Rpi_left_offset = 0;
+  int Rpi_right_offset = 0;
+  int Rpi_heigth_mod = 0;
+#endif
+
   std::string formatsStr() const { return pal ? "PAL" : "NTSC"; }
   std::string bitWidthsStr() const { return width14 ? "14 bit" : "16 bit"; }
 

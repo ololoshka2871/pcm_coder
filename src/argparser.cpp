@@ -62,7 +62,7 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
 #endif
       ;
 
-#ifdef PLAYER
+#ifdef RPI
   auto rpi_mode =
       newFlag(app, "-R,--rpi-mode", options.rpiMode, "Raspberry PI mode");
 #endif
@@ -74,10 +74,11 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
   newFlag(app, "--pal,!--ntsc", options.pal,
           "Output video format: PAL/NTSC. (--rpi-mode -> auto)",
           options.formatsStr())
-#ifdef PLAYER
+#ifdef RPI
       ->excludes(rpi_mode)
 #endif
       ;
+
   newFlag(app, "--14,!--16", options.width14, "Output bit widtht: 14/16 bit.",
           options.bitWidthsStr());
   newFlag(app, "--with-dither,!--no-dither,!--ND", options.use_dither,
@@ -95,6 +96,19 @@ static void configureArgumentParcer(CLI::App &app, Options &options) {
             "Crop N lines from TOP of frame.");
   newOption(app, "--crop-bot", options.crop_bot,
             "Crop N lines from BOTTOM of frame.");
+
+#ifdef RPI
+  newOption(app, "--vsync_delay", options.Rpi_vsync_delay,
+            "RPI vsync delay, in us.")
+      ->needs(rpi_mode);
+  newOption(app, "--left_offset", options.Rpi_left_offset, "RPI left offet.")
+      ->needs(rpi_mode);
+  newOption(app, "--right_offset", options.Rpi_right_offset,
+            "RPI right offset.")
+      ->needs(rpi_mode);
+  newOption(app, "--heigth_mod", options.Rpi_heigth_mod, "RPI heigth modifier.")
+      ->needs(rpi_mode);
+#endif
 }
 
 void Options::dump(std::ostream &os) const {
