@@ -118,6 +118,10 @@ if (USE_PLAYER)
             PUBLIC
                 -DRPI
         )
+        target_compile_definitions(common
+            PUBLIC
+                -DRPI
+        )
         target_include_directories(playlib
             PRIVATE
                 "/opt/vc/include"
@@ -129,8 +133,6 @@ if (USE_PLAYER)
     endif()
 
     set_property(TARGET playlib PROPERTY CXX_STANDARD ${CPP_STD})
-
-
 
 endif()
 
