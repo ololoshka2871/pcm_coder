@@ -4,6 +4,7 @@
 #include <array>
 #include <climits>
 #include <cstdint>
+#include <cstdlib>
 
 struct PCMLine {
   // Хранит 6 (3 * 2) аудио-сеплов, может вычислить P и Q

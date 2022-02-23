@@ -2,6 +2,7 @@
 #define PCMFRAME_H
 
 #include <climits>
+#include <cstdint>
 
 #include "iframe.h"
 
