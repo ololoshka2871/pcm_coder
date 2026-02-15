@@ -62,7 +62,7 @@ add_dependencies(SDL2 sdl2)
 
 add_library(SDL2main STATIC IMPORTED)
 set_target_properties(SDL2main PROPERTIES IMPORTED_LOCATION_RELEASE ${sdl2_install_dir}/lib/SDL2main${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_target_properties(SDL2main PROPERTIES IMPORTED_LOCATION_DEBUG ${sdl2_install_dir}/lib/SDL2main${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_target_properties(SDL2main PROPERTIES IMPORTED_LOCATION_DEBUG ${sdl2_install_dir}/lib/SDL2maind${CMAKE_STATIC_LIBRARY_SUFFIX})
 add_dependencies(SDL2main sdl2)
 
 ExternalProject_Get_Property(project_portaudio install_dir)

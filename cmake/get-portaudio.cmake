@@ -3,7 +3,7 @@ set(DEPENDENCY_INSTALL_DIR ${DEPENDENCY_DIR}/install)
 
 ExternalProject_Add(project_portaudio
 	UPDATE_COMMAND 		""
-    GIT_REPOSITORY      https://git.assembla.com/portaudio.git
+    GIT_REPOSITORY      https://github.com/PortAudio/portaudio.git
 	GIT_TAG				799a6834a5
     PREFIX              ${DEPENDENCY_EXTRACT_DIR}
 	INSTALL_DIR 		${DEPENDENCY_INSTALL_DIR}

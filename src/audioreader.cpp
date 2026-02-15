@@ -84,24 +84,30 @@ struct AudioReader::Context {
 
     /**********************************/
 
-    auto src_chanel_layout = pCodecContext->channel_layout == 0 // in_ch_layout
-                                 ? AV_CH_LAYOUT_STEREO
-                                 : pCodecContext->channel_layout;
+    AVChannelLayout ch_layout_stereo = AV_CHANNEL_LAYOUT_STEREO;
+    AVChannelLayout *pSrcLayout = &pCodecContext->ch_layout;
+    if (pCodecContext->ch_layout.nb_channels <= 0) {
+        pSrcLayout = &ch_layout_stereo;
+    }
 
+    bool is_source_stereo = (av_channel_layout_compare(pSrcLayout, &ch_layout_stereo) == 0);
     if (pCodecContext->sample_fmt != AV_SAMPLE_FMT_S16 ||
         pCodecContext->sample_rate != output_sample_rate ||
-        src_chanel_layout != AV_CH_LAYOUT_STEREO) {
+        !is_source_stereo) {
 
-      resampler_ctx =
-          swr_alloc_set_opts(nullptr, // we're allocating a new context
-                             AV_CH_LAYOUT_STEREO, // out_ch_layout
-                             AV_SAMPLE_FMT_S16,   // out_sample_fmt
-                             output_sample_rate,  // out_sample_rate
-                             src_chanel_layout,
-                             pCodecContext->sample_fmt,  // in_sample_fmt
-                             pCodecContext->sample_rate, // in_sample_rate
-                             0,                          // log_offset
-                             NULL);                      // log_ctx
+      resampler_ctx = nullptr;
+      int err = swr_alloc_set_opts2(&resampler_ctx,
+                                    &ch_layout_stereo,
+                                    AV_SAMPLE_FMT_S16,
+                                    output_sample_rate,
+                                    pSrcLayout,
+                                    pCodecContext->sample_fmt,
+                                    pCodecContext->sample_rate,
+                                    0,
+                                    nullptr);
+      if (err < 0 || !resampler_ctx) {
+          throw FFmpegException{err ? err : ENOMEM};
+      }
 
       if (resampler_ctx == nullptr) {
         throw FFmpegException{ENOMEM};
@@ -128,7 +134,7 @@ struct AudioReader::Context {
 
   AVFormatContext *pFormatContext;
   uint32_t audio_stream_index;
-  AVCodec *pCodec;
+  const AVCodec *pCodec;
   AVCodecParameters *pCodecParameters;
   AVCodecContext *pCodecContext;
   AVFrame *pFrame;
@@ -192,12 +198,13 @@ bool AudioReader::getNextAudioData(const AudioSample_t *&pData,
   if (ctx->use_resempler) {
     auto pResampledFrame = ctx->pResampledFrame;
     av_frame_unref(pResampledFrame);
-    pResampledFrame->channel_layout = AV_CH_LAYOUT_STEREO;
+    av_channel_layout_from_mask(&pResampledFrame->ch_layout, AV_CH_LAYOUT_STEREO);
     pResampledFrame->sample_rate = output_sample_rate;
     pResampledFrame->format = AV_SAMPLE_FMT_S16;
 
-    if (ctx->pFrame->channel_layout == 0) {
-      ctx->pFrame->channel_layout = AV_CH_LAYOUT_STEREO;
+     if (ctx->pFrame->ch_layout.nb_channels <= 0) {
+        av_channel_layout_uninit(&ctx->pFrame->ch_layout);
+        av_channel_layout_from_mask(&ctx->pFrame->ch_layout, AV_CH_LAYOUT_STEREO);
     }
 
     auto err =
